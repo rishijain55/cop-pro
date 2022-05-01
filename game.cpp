@@ -15,8 +15,8 @@ using namespace std;
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-const int LEVEL_WIDTH = 4000;
-const int LEVEL_HEIGHT = 2247;
+const int LEVEL_WIDTH = 2500;
+const int LEVEL_HEIGHT = 1405;
 
 //Texture wrapper class
 class LTexture
@@ -139,7 +139,6 @@ class Player
     private:
         //The X and Y offsets of the dot
         int mPosX, mPosY;
-
         //The velocity of the dot
         int mVelX, mVelY;
 
@@ -342,11 +341,12 @@ void Player::move(int camX, int camY)
     }
 	mVelX=0;
 	mVelY=0;
+
 }
 void Player::render( int camX, int camY, SDL_Rect* clip )
 {
     //Show the dot relative to the camera
-    gSpriteSheetTexture.render( mPosX - camX, mPosY - camY,clip );
+    gSpriteSheetTexture.render( mPosX-camX, mPosY-camY,clip );
 }
 
 int Player :: getPosX()
@@ -967,7 +967,7 @@ int main( int argc, char* args[] )
 			
 			//Event handler
 			SDL_Event e;
-			SDL_Rect camera = { 0, 0, 2000,1000};
+			SDL_Rect camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
 
 			//While application is running
 			while( !quit )
@@ -996,8 +996,10 @@ int main( int argc, char* args[] )
 				{
 					if(play)
 					{
-			camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
-			camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+						camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+						camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+						camera.w = gWindow.getWidth();
+						camera.h = gWindow.getHeight();
 
 						//Keep the camera in bounds
 						if( camera.x < 0 )
@@ -1031,8 +1033,8 @@ int main( int argc, char* args[] )
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
 						gBackgroundPlayTexture.render(0,0,&camera);
 						SDL_Rect* currentClip = &gSpriteClips[frame];
-						gSpriteSheetTexture.set(gWindow.getWidth()/25,gWindow.getHeight()/10);
-						player.set(gSpriteSheetTexture.getWidth(),gSpriteSheetTexture.getHeight());
+						gSpriteSheetTexture.set(100,150);
+						player.set(100,300);
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
 						player.render(camera.x,camera.y,currentClip);
