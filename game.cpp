@@ -1,7 +1,6 @@
 /*This source code copyrighted by Lazy Foo' Productions (2004-2022)
 and may not be redistributed without written permission.*/
 
-//Using SDL, SDL_image, standard IO, strings, and string streams
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include<SDL2/SDL_image.h>
