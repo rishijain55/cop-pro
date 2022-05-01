@@ -134,6 +134,7 @@ class Player
         int getPosY();
         //Shows the dot on the screen
         void render(int camX,int camY,SDL_Rect* clip = NULL);
+		void reset();
 
     private:
         //The X and Y offsets of the dot
@@ -191,6 +192,18 @@ Player::Player()
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
+}
+void Player:: reset()
+{
+
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+    mVelX = 0;
+    mVelY = 0;
+
 }
 
 void changeFrame( int dir ){
@@ -1031,6 +1044,9 @@ int main( int argc, char* args[] )
 					else{
 
 					frame =0;
+					camera.x =0;
+					camera.y =0;
+					player.reset();
 
 					playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
 					SDL_Color textColor = { 255, 255, 255, 255 };
