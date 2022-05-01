@@ -988,7 +988,7 @@ int main( int argc, char* args[] )
 					if(play)
 					{
 
-						SDL_Rect camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
+						SDL_Rect camera = { 0, 0, 2000,1000};
 						camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
 						camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
 
