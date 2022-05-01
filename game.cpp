@@ -128,7 +128,7 @@ class Player
 		void set(int w, int h);
 
         //Moves the dot
-        void move();
+        void move(int camX, int camY);
         //Position accessors
         int getPosX();
         int getPosY();
@@ -306,13 +306,13 @@ void Player :: set(int w, int h)
 	PLAYER_WIDTH=w;
 	PLAYER_HEIGHT=h;
 }
-void Player::move()
+void Player::move(int camX, int camY)
 {
     //Move the dot left or right
     mPosX += mVelX;
 
     //If the dot went too far to the left or right
-    if( ( mPosX < 0 ) || ( mPosX + PLAYER_WIDTH > LEVEL_WIDTH) )
+    if( ( mPosX < 0 ) || ( mPosX + PLAYER_WIDTH-camX > gWindow.getWidth()) )
     {
         //Move back
         mPosX -= mVelX;
@@ -322,7 +322,7 @@ void Player::move()
     mPosY += mVelY;
 
     //If the dot went too far up or down
-    if( ( mPosY < 0 ) || ( mPosY + PLAYER_HEIGHT > LEVEL_HEIGHT ) )
+    if( ( mPosY < 0 ) || ( mPosY + PLAYER_HEIGHT -camY > gWindow.getHeight()) )
     {
         //Move back
         mPosY -= mVelY;
@@ -952,13 +952,9 @@ int main( int argc, char* args[] )
 			Button playButton( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5, beforePlay,hoverPlay );
 			Button quitButton( gWindow.getWidth()-gWindow.getWidth()/5,0, gWindow.getWidth()/5, gWindow.getHeight()/10, beforeQuit,hoverQuit );
 			
-			SDL_Rect turtle_specs;
-			turtle_specs.x = 0;
-			turtle_specs.y = 0;
-			turtle_specs.w = gWindow.getWidth()/25;
-			turtle_specs.h = gWindow.getHeight()/13;
 			//Event handler
 			SDL_Event e;
+			SDL_Rect camera = { 0, 0, 2000,1000};
 
 			//While application is running
 			while( !quit )
@@ -969,7 +965,7 @@ int main( int argc, char* args[] )
 					
 
 					player.handleEvent(e);
-					player.move();
+					player.move(camera.x,camera.y);
 					playButton.handle_events(e,true);
 					quitButton.handle_events(e,false);
 					//User , bool playOrNotrequests quit
@@ -987,10 +983,8 @@ int main( int argc, char* args[] )
 				{
 					if(play)
 					{
-
-						SDL_Rect camera = { 0, 0, 2000,1000};
-						camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
-						camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+			camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+			camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
 
 						//Keep the camera in bounds
 						if( camera.x < 0 )
