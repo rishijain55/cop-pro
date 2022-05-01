@@ -106,6 +106,41 @@ class LWindow
 		bool mMinimized;
 };
 
+class Player
+{
+    public:
+        //The dimensions of the dot
+        int PLAYER_WIDTH = 50;
+        int PLAYER_HEIGHT = 100;
+
+        //Maximum axis velocity of the dot
+        static const int PLAYER_VEL = 10;
+
+        //Initializes the variables
+        Player();
+
+        //Takes key presses and adjusts the dot's velocity
+        void handleEvent( SDL_Event& e );
+
+		void set(int w, int h);
+
+        //Moves the dot
+        void move();
+
+        //Shows the dot on the screen
+        void render(int camX,int camY,SDL_Rect* clip = NULL);
+
+    private:
+        //The X and Y offsets of the dot
+        int mPosX, mPosY;
+
+        //The velocity of the dot
+        int mVelX, mVelY;
+
+};
+
+
+
 //Starts up SDL and creates window
 bool init();
 
@@ -126,17 +161,177 @@ SDL_Renderer* gRenderer = NULL;
 LTexture gBackgroundStartScreenTexture;
 LTexture gBackgroundPlayTexture;
 LTexture gSpriteSheetTexture;
-LTexture gPlayer;
+Player player;
 LTexture gPlayBefore;
 LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
+int playerHoldMoveSpeed=4;
 bool play = false;
+bool wasMoving = false;
+int frame =0;
+int countFrame =0;
 
 const int WALKING_ANIMATION_FRAMES = 8;
 SDL_Rect gSpriteClips[ WALKING_ANIMATION_FRAMES ];
 
 TTF_Font *gFont = NULL;
+
+Player::Player()
+{
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+    mVelX = 0;
+    mVelY = 0;
+}
+
+void changeFrame( int dir ){
+
+	if(dir ==0){
+		if(frame ==0){
+			frame =1;
+		}
+		else{
+			frame = 0;
+		}
+	}
+	else if(dir ==1){
+		if(frame ==2){
+			frame =3;
+		}
+		else{
+			frame = 2;
+		}	
+	}
+	else if(dir ==2){
+		if(frame ==4){
+			frame =5;
+		}
+		else{
+			frame = 4;
+		}	
+	}
+	else if(dir ==3){
+		if(frame ==6){
+			frame =7;
+		}
+		else{
+			frame = 6;
+		}
+
+	}
+	else{}
+
+}
+
+void Player::handleEvent( SDL_Event& e )
+{
+    //If a key was pressed
+    if( e.type == SDL_KEYDOWN )
+    {
+        //Adjust the velocity
+        switch( e.key.keysym.sym )
+        {
+            case SDLK_UP: 
+				
+				if(!wasMoving || countFrame==0){
+					changeFrame(0);
+					wasMoving=true;
+					mVelY -= PLAYER_VEL;
+				}
+
+				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+
+
+
+			break;
+            case SDLK_DOWN:
+				 
+				if(!wasMoving || countFrame==0){
+					changeFrame(2);
+					wasMoving=true;
+					mVelY += PLAYER_VEL;
+				}
+				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+
+			break;
+            case SDLK_LEFT:
+				 
+				if(!wasMoving || countFrame==0){
+					changeFrame(3);
+					wasMoving=true;
+					mVelX -= PLAYER_VEL;
+				}
+				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+
+			break;
+            case SDLK_RIGHT: 
+				 
+				if(!wasMoving || countFrame==0){
+					changeFrame(1);
+					wasMoving=true;
+					mVelX += PLAYER_VEL;
+				}
+				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+
+			break;
+        }
+    }
+    //If a key was released
+    else if( e.type == SDL_KEYUP  )
+    {
+		countFrame=0;
+		// && e.key.repeat == 0
+        //Adjust the velocity
+        // switch( e.key.keysym.sym )
+        // {
+            // case SDLK_UP: mVelY += PLAYER_VEL; break;
+            // case SDLK_DOWN: mVelY -= PLAYER_VEL; break;
+            // case SDLK_LEFT: mVelX += PLAYER_VEL; break;
+            // case SDLK_RIGHT: mVelX -= PLAYER_VEL; break;
+			wasMoving = false;
+        // }
+    }
+}
+void Player :: set(int w, int h)
+{
+	PLAYER_WIDTH=w;
+	PLAYER_HEIGHT=h;
+}
+void Player::move()
+{
+    //Move the dot left or right
+    mPosX += mVelX;
+
+    //If the dot went too far to the left or right
+    if( ( mPosX < 0 ) || ( mPosX + PLAYER_WIDTH > gWindow.getWidth() ) )
+    {
+        //Move back
+        mPosX -= mVelX;
+    }
+
+    //Move the dot up or down
+    mPosY += mVelY;
+
+    //If the dot went too far up or down
+    if( ( mPosY < 0 ) || ( mPosY + PLAYER_HEIGHT > gWindow.getHeight() ) )
+    {
+        //Move back
+        mPosY -= mVelY;
+    }
+	mVelX=0;
+	mVelY=0;
+}
+void Player::render( int camX, int camY, SDL_Rect* clip )
+{
+    //Show the dot relative to the camera
+    gSpriteSheetTexture.render( mPosX - camX, mPosY - camY,clip );
+}
+
+
 
 LTexture::LTexture()
 {
@@ -761,13 +956,12 @@ int main( int argc, char* args[] )
 			string hoverQuit = "quitHover.png";
 			Button playButton( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5, beforePlay,hoverPlay );
 			Button quitButton( gWindow.getWidth()-gWindow.getWidth()/5,0, gWindow.getWidth()/5, gWindow.getHeight()/10, beforeQuit,hoverQuit );
-			int frame =0;
+			
 			SDL_Rect turtle_specs;
 			turtle_specs.x = 0;
 			turtle_specs.y = 0;
 			turtle_specs.w = gWindow.getWidth()/25;
 			turtle_specs.h = gWindow.getHeight()/13;
-
 			//Event handler
 			SDL_Event e;
 
@@ -777,64 +971,65 @@ int main( int argc, char* args[] )
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
+					
+							// if( e.type == SDL_KEYDOWN )
+							// {
 
-							if( e.type == SDL_KEYDOWN )
-							{
+							// 	switch( e.key.keysym.sym )
+							// 	{
+							// 		case SDLK_UP:
+							// 		turtle_specs.y-=10;
+							// 		if(frame ==0){
+							// 			frame =1;
+							// 		}
+							// 		else{
+							// 			frame = 0;
+							// 		}
+							// 		break;
 
-								switch( e.key.keysym.sym )
-								{
-									case SDLK_UP:
-									turtle_specs.y-=10;
-									if(frame ==0){
-										frame =1;
-									}
-									else{
-										frame = 0;
-									}
-									break;
+							// 		case SDLK_DOWN:
+							// 		turtle_specs.y+=10;
+							// 		if(frame ==4){
+							// 			frame =5;
+							// 		}
+							// 		else{
+							// 			frame = 4;
+							// 		}
+							// 		break;
 
-									case SDLK_DOWN:
-									turtle_specs.y+=10;
-									if(frame ==4){
-										frame =5;
-									}
-									else{
-										frame = 4;
-									}
-									break;
+							// 		case SDLK_LEFT:
+							// 		turtle_specs.x-= 10;
+							// 		if(frame ==6){
+							// 			frame =7;
+							// 		}
+							// 		else{
+							// 			frame = 6;
+							// 		}
+							// 		break;
 
-									case SDLK_LEFT:
-									turtle_specs.x-= 10;
-									if(frame ==6){
-										frame =7;
-									}
-									else{
-										frame = 6;
-									}
-									break;
+							// 		case SDLK_RIGHT:
+							// 		turtle_specs.x+=10;
+							// 		if(frame ==2){
+							// 			frame =3;
+							// 		}
+							// 		else{
+							// 			frame = 2;
+							// 		}
 
-									case SDLK_RIGHT:
-									turtle_specs.x+=10;
-									if(frame ==2){
-										frame =3;
-									}
-									else{
-										frame = 2;
-									}
+							// 		break;
 
-									break;
-
-									default:
+							// 		default:
 							
-									SDL_Rect* currentClip = &gSpriteClips[0];
-									gSpriteSheetTexture.set(gWindow.getWidth()/25,gWindow.getHeight()/10);
-									gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y, currentClip );
+							// 		SDL_Rect* currentClip = &gSpriteClips[0];
+							// 		gSpriteSheetTexture.set(gWindow.getWidth()/25,gWindow.getHeight()/10);
+							// 		gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y, currentClip );
 									
-									break;
-								}
-							}
+							// 		break;
+							// 	}
+							// }
 
-
+					player.handleEvent(e);
+					player.move();
 					playButton.handle_events(e,true);
 					quitButton.handle_events(e,false);
 					//User , bool playOrNotrequests quit
@@ -867,7 +1062,10 @@ int main( int argc, char* args[] )
 						drawTexture(0,gWindow.getHeight()*9/10,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
 						SDL_Rect* currentClip = &gSpriteClips[frame];
 						gSpriteSheetTexture.set(gWindow.getWidth()/25,gWindow.getHeight()/10);
-						gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
+						player.set(gSpriteSheetTexture.getWidth(),gSpriteSheetTexture.getHeight());
+						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
+						
+						player.render(0,0,currentClip);
 						quitButton.show();
 
 						SDL_RenderPresent(gRenderer);
@@ -877,10 +1075,10 @@ int main( int argc, char* args[] )
 
 					frame =0;
 
-					turtle_specs.x = 0;
-					turtle_specs.y = 0;
-					turtle_specs.w = SCREEN_WIDTH/25;
-					turtle_specs.h = SCREEN_HEIGHT/13;
+					// turtle_specs.x = 0;
+					// turtle_specs.y = 0;
+					// turtle_specs.w = SCREEN_WIDTH/25;
+					// turtle_specs.h = SCREEN_HEIGHT/13;
 
 					//Clear screen
 					playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
