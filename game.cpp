@@ -15,6 +15,9 @@ using namespace std;
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
+const int LEVEL_WIDTH = 4000;
+const int LEVEL_HEIGHT = 2247;
+
 //Texture wrapper class
 class LTexture
 {
@@ -114,7 +117,7 @@ class Player
         int PLAYER_HEIGHT = 100;
 
         //Maximum axis velocity of the dot
-        static const int PLAYER_VEL = 10;
+        static const int PLAYER_VEL = 50;
 
         //Initializes the variables
         Player();
@@ -126,7 +129,9 @@ class Player
 
         //Moves the dot
         void move();
-
+        //Position accessors
+        int getPosX();
+        int getPosY();
         //Shows the dot on the screen
         void render(int camX,int camY,SDL_Rect* clip = NULL);
 
@@ -307,7 +312,7 @@ void Player::move()
     mPosX += mVelX;
 
     //If the dot went too far to the left or right
-    if( ( mPosX < 0 ) || ( mPosX + PLAYER_WIDTH > gWindow.getWidth() ) )
+    if( ( mPosX < 0 ) || ( mPosX + PLAYER_WIDTH > LEVEL_WIDTH) )
     {
         //Move back
         mPosX -= mVelX;
@@ -317,7 +322,7 @@ void Player::move()
     mPosY += mVelY;
 
     //If the dot went too far up or down
-    if( ( mPosY < 0 ) || ( mPosY + PLAYER_HEIGHT > gWindow.getHeight() ) )
+    if( ( mPosY < 0 ) || ( mPosY + PLAYER_HEIGHT > LEVEL_HEIGHT ) )
     {
         //Move back
         mPosY -= mVelY;
@@ -331,6 +336,14 @@ void Player::render( int camX, int camY, SDL_Rect* clip )
     gSpriteSheetTexture.render( mPosX - camX, mPosY - camY,clip );
 }
 
+int Player :: getPosX()
+{
+	return mPosX;
+}
+int Player :: getPosY()
+{
+	return mPosY;
+}
 
 
 LTexture::LTexture()
@@ -794,24 +807,6 @@ void Button::handle_events(SDL_Event &event, bool playOrNot)
             }
         }
     }
-    // //If a mouse button was released
-    // if( event.type == SDL_MOUSEBUTTONUP )
-    // {
-    //     //If the left mouse button was released
-    //     if( event.button.button == SDL_BUTTON_LEFT )
-    //     { 
-    //         //Get the mouse offsets
-    //         x = event.button.x;
-    //         y = event.button.y;
-        
-    //         //If the mouse is over the button
-    //         if( ( x > box.x ) && ( x < box.x + box.w ) && ( y > box.y ) && ( y < box.y + box.h ) )
-    //         {
-    //             //Set the button sprite
-	// 			mButton = mHover;
-    //         }
-    //     }
-    // }
 }
 void Button::show()
 {
@@ -972,61 +967,6 @@ int main( int argc, char* args[] )
 				while( SDL_PollEvent( &e ) != 0 )
 				{
 					
-							// if( e.type == SDL_KEYDOWN )
-							// {
-
-							// 	switch( e.key.keysym.sym )
-							// 	{
-							// 		case SDLK_UP:
-							// 		turtle_specs.y-=10;
-							// 		if(frame ==0){
-							// 			frame =1;
-							// 		}
-							// 		else{
-							// 			frame = 0;
-							// 		}
-							// 		break;
-
-							// 		case SDLK_DOWN:
-							// 		turtle_specs.y+=10;
-							// 		if(frame ==4){
-							// 			frame =5;
-							// 		}
-							// 		else{
-							// 			frame = 4;
-							// 		}
-							// 		break;
-
-							// 		case SDLK_LEFT:
-							// 		turtle_specs.x-= 10;
-							// 		if(frame ==6){
-							// 			frame =7;
-							// 		}
-							// 		else{
-							// 			frame = 6;
-							// 		}
-							// 		break;
-
-							// 		case SDLK_RIGHT:
-							// 		turtle_specs.x+=10;
-							// 		if(frame ==2){
-							// 			frame =3;
-							// 		}
-							// 		else{
-							// 			frame = 2;
-							// 		}
-
-							// 		break;
-
-							// 		default:
-							
-							// 		SDL_Rect* currentClip = &gSpriteClips[0];
-							// 		gSpriteSheetTexture.set(gWindow.getWidth()/25,gWindow.getHeight()/10);
-							// 		gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y, currentClip );
-									
-							// 		break;
-							// 	}
-							// }
 
 					player.handleEvent(e);
 					player.move();
@@ -1048,24 +988,47 @@ int main( int argc, char* args[] )
 					if(play)
 					{
 
+						SDL_Rect camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
+						camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+						camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
 
+						//Keep the camera in bounds
+						if( camera.x < 0 )
+						{ 
+							camera.x = 0;
+						}
+						if( camera.y < 0 )
+						{
+							camera.y = 0;
+						}
+						if( camera.x > LEVEL_WIDTH - camera.w )
+						{
+							camera.x = LEVEL_WIDTH - camera.w;
+						}
+						if( camera.y > LEVEL_HEIGHT - camera.h )
+						{
+							camera.y = LEVEL_HEIGHT - camera.h;
+						}
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
 
-						SDL_SetRenderDrawColor( gRenderer, 34, 139, 34, 0xFF );
+						// SDL_SetRenderDrawColor( gRenderer, 34, 139, 34, 0xFF );
 
-						SDL_RenderClear( gRenderer );
-						//vertical road
-						drawTexture(gWindow.getWidth()/2,0,gWindow.getWidth()/20,gWindow.getHeight(), 71, 72, 78, 255);
-						//horizontal roads
-						drawTexture(0,0,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
-						drawTexture(0,gWindow.getHeight()/2,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
-						drawTexture(0,gWindow.getHeight()*9/10,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
+						// SDL_RenderClear( gRenderer );
+						// //vertical road
+						// drawTexture(gWindow.getWidth()/2,0,gWindow.getWidth()/20,gWindow.getHeight(), 71, 72, 78, 255);
+						// //horizontal roads
+						// drawTexture(0,0,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
+						// drawTexture(0,gWindow.getHeight()/2,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
+						// drawTexture(0,gWindow.getHeight()*9/10,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
+						gBackgroundPlayTexture.loadFromFile("background.jpg");
+						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
+						gBackgroundPlayTexture.render(0,0,&camera);
 						SDL_Rect* currentClip = &gSpriteClips[frame];
 						gSpriteSheetTexture.set(gWindow.getWidth()/25,gWindow.getHeight()/10);
 						player.set(gSpriteSheetTexture.getWidth(),gSpriteSheetTexture.getHeight());
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
-						player.render(0,0,currentClip);
+						player.render(camera.x,camera.y,currentClip);
 						quitButton.show();
 
 						SDL_RenderPresent(gRenderer);
@@ -1075,23 +1038,13 @@ int main( int argc, char* args[] )
 
 					frame =0;
 
-					// turtle_specs.x = 0;
-					// turtle_specs.y = 0;
-					// turtle_specs.w = SCREEN_WIDTH/25;
-					// turtle_specs.h = SCREEN_HEIGHT/13;
-
-					//Clear screen
 					playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
 					SDL_Color textColor = { 255, 255, 255, 255 };
 					string newGame = "New Game";
 					string quit = "Quit";
-					// newGameText.loadFromRenderedText(newGame, textColor);
 					quitText.loadFromRenderedText(quit, textColor);
 					gBackgroundStartScreenTexture.set(gWindow.getWidth(),gWindow.getHeight());
 					gBackgroundStartScreenTexture.render(0,0);
-
-					// newGameText.render(gWindow.getWidth()/2-newGameText.getWidth()/2, gWindow.getHeight()/2-newGameText.getHeight()/2);
-					// quitText.render(gWindow.getWidth()/2-quitText.getWidth()/2, gWindow.getHeight()/2-quitText.getHeight()/2 +quitText.getHeight()*2);
 					
 					playButton.show();
 					//Update screen
