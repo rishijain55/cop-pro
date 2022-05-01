@@ -175,7 +175,7 @@ LTexture quitText;
 int playerHoldMoveSpeed=4;
 bool play = false;
 bool wasMoving = false;
-int frame =0;
+int frame =4;
 int countFrame =0;
 
 const int WALKING_ANIMATION_FRAMES = 8;
@@ -1043,7 +1043,7 @@ int main( int argc, char* args[] )
 					}
 					else{
 
-					frame =0;
+					frame =4;
 					camera.x =0;
 					camera.y =0;
 					player.reset();
