@@ -15,13 +15,11 @@ using namespace std;
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-const int LEVEL_WIDTH = 3240;
-const int LEVEL_HEIGHT = 3240;
+const int LEVEL_WIDTH = 4200;
+const int LEVEL_HEIGHT = 2400;
 
-int tile[108][108]={};
-int temp[108][108]={0};
-int isvis[108][108]={0};
-
+int tile[80][140]={};
+int temp[80][140]={0};
 
 
 //Texture wrapper class
@@ -179,8 +177,8 @@ LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
 int mapTileSize = 30;
-int xNoSquares =108;
-int yNoSquares =108;
+int xNoSquares =140;
+int yNoSquares =80;
 int playerHoldMoveSpeed=4;
 bool play = false;
 bool wasMoving = false;
@@ -978,8 +976,8 @@ void close()
 {
 	ofstream file;
 	file.open("matrix.txt");
-	for(int i =0;i<108;i++){
-		for(int j=0;j<108;j++){
+	for(int i =0;i<80;i++){
+		for(int j=0;j<140;j++){
 			file<<temp[i][j]<<", ";
 		}
 		file<<endl;
@@ -1052,6 +1050,7 @@ int main( int argc, char* args[] )
 					{
 						quit = true;
 					}
+					//for handing keys for temp
 				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RCTRL){
 							row = mapElement(curposX,curposY)/xNoSquares;
 							col = mapElement(curposX,curposY)%xNoSquares;
@@ -1065,6 +1064,7 @@ int main( int argc, char* args[] )
 							eraseMark= false;
 						}
 					}
+					//
 							// prevposX=curposX;
 							// prevposY=curposY;
 					//Handle window events
@@ -1104,9 +1104,11 @@ int main( int argc, char* args[] )
 						}
 						
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
-						gBackgroundPlayTexture.loadFromFile("map.png");
+						gBackgroundPlayTexture.loadFromFile("mini(1).png");
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
 						gBackgroundPlayTexture.render(0,0,&camera);
+
+						//for marking where temp is set to 1
 						curposX = player.getPosX();
 						curposY = player.getPosY()+player.PLAYER_HEIGHT/2;
 						row = mapElement(curposX,curposY)/xNoSquares;
@@ -1117,15 +1119,14 @@ int main( int argc, char* args[] )
 						}
 						// isvis[row+1][col]=1;
 
-
-						for(int i =0;i<108;i++){
-							for(int j=0;j<108;j++){
+						//displaying temp
+						for(int i =0;i<80;i++){
+							for(int j=0;j<140;j++){
 								if(temp[i][j]==1){
 									drawTexture(j*mapTileSize-camera.x,i*mapTileSize-camera.y,mapTileSize,mapTileSize,0,0,0,100);
 								}
 							}
 						}
-						drawTexture(0-camera.x,200-camera.y,200,100,0,0,0,255);
 						
 						SDL_Rect* currentClip = &gSpriteClips[frame];
 						gSpriteSheetTexture.set(30,60);
