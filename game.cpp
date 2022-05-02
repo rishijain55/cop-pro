@@ -15,7 +15,9 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
 const int LEVEL_WIDTH = 2500;
-const int LEVEL_HEIGHT = 1405;
+const int LEVEL_HEIGHT = 1400;
+
+int tile[14][25]={{0},{0},{1,1}};
 
 //Texture wrapper class
 class LTexture
@@ -112,8 +114,8 @@ class Player
 {
     public:
         //The dimensions of the dot
-        int PLAYER_WIDTH = 50;
-        int PLAYER_HEIGHT = 100;
+        int PLAYER_WIDTH = 100;
+        int PLAYER_HEIGHT = 200;
 
         //Maximum axis velocity of the dot
         static const int PLAYER_VEL = 50;
@@ -134,6 +136,7 @@ class Player
         //Shows the dot on the screen
         void render(int camX,int camY,SDL_Rect* clip = NULL);
 		void reset();
+		bool collided();
 
     private:
         //The X and Y offsets of the dot
@@ -170,16 +173,36 @@ LTexture gPlayBefore;
 LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
+int mapTileSize = 100;
+int xNoSquares =25;
+int yNoSquares =14;
 int playerHoldMoveSpeed=4;
 bool play = false;
 bool wasMoving = false;
 int frame =4;
 int countFrame =0;
 
+
 const int WALKING_ANIMATION_FRAMES = 8;
 SDL_Rect gSpriteClips[ WALKING_ANIMATION_FRAMES ];
 
 TTF_Font *gFont = NULL;
+
+int mapElement(int posX,int posY){
+	int x = posX/mapTileSize;
+	int y = posY/mapTileSize;
+	return y*xNoSquares+x;
+}
+
+bool wallCollision(int x,int y)
+{
+	int tileNo = mapElement(x,y);
+	int tileCol = tileNo%xNoSquares;
+	int tileRow = tileNo/xNoSquares;
+	
+	return tile[tileRow][tileCol]==1;
+
+}
 
 Player::Player()
 {
@@ -338,6 +361,10 @@ void Player::move(int camX, int camY)
         //Move back
         mPosY -= mVelY;
     }
+	if(collided()){
+		mPosX-=mVelX;
+		mPosY-=mVelY;
+	}
 	mVelX=0;
 	mVelY=0;
 
@@ -355,6 +382,19 @@ int Player :: getPosX()
 int Player :: getPosY()
 {
 	return mPosY;
+}
+
+bool Player :: collided()
+{
+	bool collided = false;
+	collided = collided||wallCollision(mPosX,mPosY);
+	collided = collided||wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2);
+	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY)&&(mPosX%mapTileSize!=0));
+	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosX%mapTileSize!=0));
+	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
+	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
+	return collided;
+	
 }
 
 
@@ -920,6 +960,10 @@ void drawTexture( int x, int y, int w, int h, int r, int g, int b, int opak )
 	SDL_RenderFillRect(gRenderer, &fillRect );   
 }
 
+
+
+
+
 void close()
 {
 	//Free loaded images
@@ -1018,22 +1062,13 @@ int main( int argc, char* args[] )
 							camera.y = LEVEL_HEIGHT - camera.h;
 						}
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
-
-						// SDL_SetRenderDrawColor( gRenderer, 34, 139, 34, 0xFF );
-
-						// SDL_RenderClear( gRenderer );
-						// //vertical road
-						// drawTexture(gWindow.getWidth()/2,0,gWindow.getWidth()/20,gWindow.getHeight(), 71, 72, 78, 255);
-						// //horizontal roads
-						// drawTexture(0,0,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
-						// drawTexture(0,gWindow.getHeight()/2,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
-						// drawTexture(0,gWindow.getHeight()*9/10,gWindow.getWidth(),gWindow.getHeight()/10, 71, 72, 78, 255);
 						gBackgroundPlayTexture.loadFromFile("background.jpg");
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
 						gBackgroundPlayTexture.render(0,0,&camera);
+						drawTexture(0-camera.x,200-camera.y,200,100,0,0,0,255);
 						SDL_Rect* currentClip = &gSpriteClips[frame];
-						gSpriteSheetTexture.set(100,150);
-						player.set(100,300);
+						gSpriteSheetTexture.set(100,200);
+						player.set(100,200);
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
 						player.render(camera.x,camera.y,currentClip);
