@@ -396,9 +396,9 @@ bool Player :: collided()
 {
 	bool collided = false;
 	// collided = collided||wallCollision(mPosX,mPosY);
-	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2)&&(mPosY%mapTileSize==0));
+	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2))&&(mPosY%mapTileSize==0);
 	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY)&&(mPosX%mapTileSize==0));
-	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosX%mapTileSize==0));
+	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosY%mapTileSize==0)&&(mPosX%mapTileSize!=0));
 	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
 	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
 	return collided;
@@ -964,8 +964,10 @@ bool loadMedia()
 void drawTexture( int x, int y, int w, int h, int r, int g, int b, int opak )
 {
 	SDL_Rect fillRect = { x, y , w, h};
-	SDL_SetRenderDrawColor(gRenderer, r, g, b, opak );        
+	SDL_SetRenderDrawColor(gRenderer, r, g, b, opak ); 
+	SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);       
 	SDL_RenderFillRect(gRenderer, &fillRect );   
+	
 }
 
 
@@ -1010,9 +1012,7 @@ int main( int argc, char* args[] )
 		}
 		else
 		{	
-			for(int i = 25;i<=100;i++){
-				tile[i][29]=1;
-			}
+
 
 
 			//Main loop flag
@@ -1025,18 +1025,19 @@ int main( int argc, char* args[] )
 			string hoverQuit = "quitHover.png";
 			Button playButton( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5, beforePlay,hoverPlay );
 			Button quitButton( gWindow.getWidth()-gWindow.getWidth()/5,0, gWindow.getWidth()/5, gWindow.getHeight()/10, beforeQuit,hoverQuit );
-			
+			bool eraseMark = false;
 			//Event handler
 			SDL_Event e;
 			SDL_Rect camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
 			int prevposX = 0;
 			int prevposY = 0;
-			int curposX = -30;
-			int curposY = -30;
+			int curposX = 0;
+			int curposY = 0;
 			int row,col;
+			
 			//While application is running
 			while( !quit )
-			{
+			{	
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
@@ -1051,7 +1052,21 @@ int main( int argc, char* args[] )
 					{
 						quit = true;
 					}
-
+				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RCTRL){
+							row = mapElement(curposX,curposY)/xNoSquares;
+							col = mapElement(curposX,curposY)%xNoSquares;
+							temp[row][col]=0;							
+					}
+					else if(e.type==SDL_KEYDOWN &&e.key.keysym.sym == SDLK_LCTRL){
+						if(eraseMark==false){
+							eraseMark=true;
+						}
+						else{
+							eraseMark= false;
+						}
+					}
+							// prevposX=curposX;
+							// prevposY=curposY;
 					//Handle window events
 					gWindow.handleEvent( e );
 				}
@@ -1061,6 +1076,9 @@ int main( int argc, char* args[] )
 				{
 					if(play)
 					{
+
+							// prevposX=curposX;
+							// prevposY=curposY;
 
 						camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
 						camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
@@ -1084,11 +1102,31 @@ int main( int argc, char* args[] )
 						{
 							camera.y = LEVEL_HEIGHT - camera.h;
 						}
+						
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
 						gBackgroundPlayTexture.loadFromFile("map.png");
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
 						gBackgroundPlayTexture.render(0,0,&camera);
+						curposX = player.getPosX();
+						curposY = player.getPosY()+player.PLAYER_HEIGHT/2;
+						row = mapElement(curposX,curposY)/xNoSquares;
+						col = mapElement(curposX,curposY)%xNoSquares;
+						cout<<row<<" "<<col<<endl;
+						if(!eraseMark){
+						temp[row][col]=1;
+						}
+						// isvis[row+1][col]=1;
+
+
+						for(int i =0;i<108;i++){
+							for(int j=0;j<108;j++){
+								if(temp[i][j]==1){
+									drawTexture(j*mapTileSize-camera.x,i*mapTileSize-camera.y,mapTileSize,mapTileSize,0,0,0,100);
+								}
+							}
+						}
 						drawTexture(0-camera.x,200-camera.y,200,100,0,0,0,255);
+						
 						SDL_Rect* currentClip = &gSpriteClips[frame];
 						gSpriteSheetTexture.set(30,60);
 						player.set(30,60);
@@ -1097,21 +1135,21 @@ int main( int argc, char* args[] )
 						player.render(camera.x,camera.y,currentClip);
 						SDL_RenderPresent(gRenderer);
 
-						curposX = player.getPosX();
-						curposY = player.getPosY()+player.PLAYER_HEIGHT;
-						if(curposX!=prevposX || curposY!= prevposY){
-							row = mapElement(curposX,curposY)/xNoSquares;
-							col = mapElement(curposX,curposY)%xNoSquares;
-							cout<<row<<" "<<col<<endl;
-							if(!isvis[row][col]){
-							cout<<"bhai input de"<<endl;
-							cin>>temp[row][col];
-							isvis[row][col]=1;
-							}
-							prevposX=curposX;
-							prevposY=curposY;
-						}
+
+						// if(curposX!=prevposX || curposY!= prevposY){
+						// 	row = mapElement(curposX,curposY)/xNoSquares;
+						// 	col = mapElement(curposX,curposY)%xNoSquares;
+						// 	cout<<row<<" "<<col<<endl;
+						// 	if(!isvis[row][col]){
+						// 	cout<<"bhai input de"<<endl;
+						// 	cin>>temp[row][col];
+						// 	isvis[row][col]=1;
+						// 	}
+						// 	prevposX=curposX;
+						// 	prevposY=curposY;
+						// }
 						quitButton.show();
+
 
 
 					}
