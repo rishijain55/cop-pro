@@ -8,6 +8,7 @@ and may not be redistributed without written permission.*/
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 using namespace std;
 
 //Screen dimension constants
@@ -18,6 +19,10 @@ const int LEVEL_WIDTH = 3240;
 const int LEVEL_HEIGHT = 3240;
 
 int tile[108][108]={};
+int temp[108][108]={0};
+int isvis[108][108]={0};
+
+
 
 //Texture wrapper class
 class LTexture
@@ -118,7 +123,7 @@ class Player
         int PLAYER_HEIGHT = 60;
 
         //Maximum axis velocity of the dot
-        static const int PLAYER_VEL = 10;
+        static const int PLAYER_VEL = 30;
 
         //Initializes the variables
         Player();
@@ -318,6 +323,9 @@ void Player::handleEvent( SDL_Event& e )
 
 			break;
         }
+
+
+
     }
     //If a key was released
     else if( e.type == SDL_KEYUP  )
@@ -387,10 +395,10 @@ int Player :: getPosY()
 bool Player :: collided()
 {
 	bool collided = false;
-	collided = collided||wallCollision(mPosX,mPosY);
-	collided = collided||wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2);
-	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY)&&(mPosX%mapTileSize!=0));
-	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosX%mapTileSize!=0));
+	// collided = collided||wallCollision(mPosX,mPosY);
+	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2)&&(mPosY%mapTileSize==0));
+	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY)&&(mPosX%mapTileSize==0));
+	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosX%mapTileSize==0));
 	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
 	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
 	return collided;
@@ -966,6 +974,14 @@ void drawTexture( int x, int y, int w, int h, int r, int g, int b, int opak )
 
 void close()
 {
+	ofstream file;
+	file.open("matrix.txt");
+	for(int i =0;i<108;i++){
+		for(int j=0;j<108;j++){
+			file<<temp[i][j]<<", ";
+		}
+		file<<endl;
+	}
 	//Free loaded images
 	gBackgroundStartScreenTexture.free();
 
@@ -994,7 +1010,9 @@ int main( int argc, char* args[] )
 		}
 		else
 		{	
-
+			for(int i = 25;i<=100;i++){
+				tile[i][29]=1;
+			}
 
 
 			//Main loop flag
@@ -1011,7 +1029,11 @@ int main( int argc, char* args[] )
 			//Event handler
 			SDL_Event e;
 			SDL_Rect camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
-
+			int prevposX = 0;
+			int prevposY = 0;
+			int curposX = -30;
+			int curposY = -30;
+			int row,col;
 			//While application is running
 			while( !quit )
 			{
@@ -1039,6 +1061,7 @@ int main( int argc, char* args[] )
 				{
 					if(play)
 					{
+
 						camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
 						camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
 						camera.w = gWindow.getWidth();
@@ -1072,9 +1095,24 @@ int main( int argc, char* args[] )
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
 						player.render(camera.x,camera.y,currentClip);
+						SDL_RenderPresent(gRenderer);
+
+						curposX = player.getPosX();
+						curposY = player.getPosY()+player.PLAYER_HEIGHT;
+						if(curposX!=prevposX || curposY!= prevposY){
+							row = mapElement(curposX,curposY)/xNoSquares;
+							col = mapElement(curposX,curposY)%xNoSquares;
+							cout<<row<<" "<<col<<endl;
+							if(!isvis[row][col]){
+							cout<<"bhai input de"<<endl;
+							cin>>temp[row][col];
+							isvis[row][col]=1;
+							}
+							prevposX=curposX;
+							prevposY=curposY;
+						}
 						quitButton.show();
 
-						SDL_RenderPresent(gRenderer);
 
 					}
 					else{
@@ -1095,6 +1133,7 @@ int main( int argc, char* args[] )
 					playButton.show();
 					//Update screen
 					SDL_RenderPresent( gRenderer );
+					
 					}
 				}
 			}
