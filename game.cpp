@@ -211,6 +211,42 @@ class Player
 
         //Moves the dot
         void move(int camX, int camY);
+		void changePos(int x,int y);
+        //Position accessors
+        int getPosX();
+        int getPosY();
+        //Shows the dot on the screen
+        void render(int camX,int camY,SDL_Rect* clip = NULL);
+		void reset();
+		bool collided();
+
+    private:
+        //The X and Y offsets of the dot
+        int mPosX, mPosY;
+        //The velocity of the dot
+        int mVelX, mVelY;
+
+};
+class Yulu
+{
+    public:
+        //The dimensions of the dot
+        int YULU_WIDTH = 30;
+        int YULU_HEIGHT = 60;
+
+        //Maximum axis velocity of the dot
+        static const int PLAYER_VEL = 30;
+
+        //Initializes the variables
+        Yulu();
+
+        //Takes key presses and adjusts the dot's velocity
+        void handleEvent( SDL_Event& e );
+
+		void set(int w, int h);
+		void changePos(int x,int y);
+        //Moves the dot
+        void move(int camX, int camY);
         //Position accessors
         int getPosX();
         int getPosY();
@@ -249,7 +285,9 @@ SDL_Renderer* gRenderer = NULL;
 LTexture gBackgroundStartScreenTexture;
 LTexture gBackgroundPlayTexture;
 LTexture gSpriteSheetTexture;
+LTexture gYuluSheetTexture;
 Player player;
+Yulu yulu;
 LTexture gPlayBefore;
 LTexture gPlayHover;
 LTexture gPlayDisplay;
@@ -258,8 +296,10 @@ int mapTileSize = 60;
 int xNoSquares =140;
 int yNoSquares =80;
 int playerHoldMoveSpeed=4;
+int yuluHoldMoveSpeed=1;
 bool play = false;
-bool wasMoving = false;
+bool wasPlayerMoving = false;
+bool wasYuluMoving = false;
 int frame =4;
 int countFrame =0;
 int direction =-1;
@@ -268,12 +308,17 @@ int direction =-1;
 const int WALKING_ANIMATION_FRAMES = 8;
 SDL_Rect gSpriteClips[ WALKING_ANIMATION_FRAMES ];
 
+const int YULU_ANIMATION_FRAMES = 4;
+SDL_Rect gYuluClips[ YULU_ANIMATION_FRAMES ];
+
 TTF_Font *gFont = NULL;
+
 int mapElement(int posX,int posY){
 	int x = posX/mapTileSize;
 	int y = posY/mapTileSize;
 	return y*xNoSquares+x;
 }
+
 
 bool wallCollision(int x,int y)
 {
@@ -305,6 +350,15 @@ void Player:: reset()
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
+
+}
+void Player:: changePos(int x,int y)
+{
+
+    //Initialize the offsets
+    mPosX = x;
+    mPosY = y;
+
 
 }
 
@@ -358,12 +412,12 @@ void Player::handleEvent( SDL_Event& e )
 
             case SDLK_UP: 
 				if(direction!=0){
-					wasMoving=false;
+					wasPlayerMoving=false;
 					direction=0;
 				}
-				if(!wasMoving || countFrame==0){
+				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(0);
-					wasMoving=true;
+					wasPlayerMoving=true;
 					mVelY -= PLAYER_VEL;
 				}
 
@@ -374,12 +428,12 @@ void Player::handleEvent( SDL_Event& e )
 			break;
             case SDLK_DOWN:
 				if(direction!=2){
-					wasMoving=false;
+					wasPlayerMoving=false;
 					direction=2;
 				}
-				if(!wasMoving || countFrame==0){
+				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(2);
-					wasMoving=true;
+					wasPlayerMoving=true;
 					mVelY += PLAYER_VEL;
 				}
 				countFrame= (countFrame+1)%playerHoldMoveSpeed;
@@ -387,12 +441,12 @@ void Player::handleEvent( SDL_Event& e )
 			break;
             case SDLK_LEFT:
 				if(direction!=3){
-					wasMoving=false;
+					wasPlayerMoving=false;
 					direction=3;
 				}
-				if(!wasMoving || countFrame==0){
+				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(3);
-					wasMoving=true;
+					wasPlayerMoving=true;
 					mVelX -= PLAYER_VEL;
 				}
 				countFrame= (countFrame+1)%playerHoldMoveSpeed;
@@ -400,12 +454,12 @@ void Player::handleEvent( SDL_Event& e )
 			break;
             case SDLK_RIGHT: 
 				if(direction!=1){
-					wasMoving=false;
+					wasPlayerMoving=false;
 					direction=1;
 				}
-				if(!wasMoving || countFrame==0){
+				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(1);
-					wasMoving=true;
+					wasPlayerMoving=true;
 					mVelX += PLAYER_VEL;
 				}
 				countFrame= (countFrame+1)%playerHoldMoveSpeed;
@@ -428,7 +482,7 @@ void Player::handleEvent( SDL_Event& e )
             // case SDLK_DOWN: mVelY -= PLAYER_VEL; break;
             // case SDLK_LEFT: mVelX += PLAYER_VEL; break;
             // case SDLK_RIGHT: mVelX -= PLAYER_VEL; break;
-			wasMoving = false;
+			wasPlayerMoving = false;
         // }
     }
 }
@@ -492,6 +546,197 @@ bool Player :: collided()
 	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%(mapTileSize/2)!=0));
 	return collided;
 	
+}
+
+
+Yulu::Yulu()
+{
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+    mVelX = 0;
+    mVelY = 0;
+}
+void Yulu:: reset()
+{
+
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+    mVelX = 0;
+    mVelY = 0;
+
+}
+void Yulu:: changePos(int x,int y)
+{
+
+    //Initialize the offsets
+    mPosX = x;
+    mPosY = y;
+
+
+}
+
+
+
+void Yulu::handleEvent( SDL_Event& e )
+{
+    //If a key was pressed
+    if( e.type == SDL_KEYDOWN )
+    {
+        //Adjust the velocity
+        switch( e.key.keysym.sym )
+        {
+
+            case SDLK_UP: 
+				if(direction!=0){
+					wasYuluMoving=false;
+					direction=0;
+				}
+				if(!wasYuluMoving || countFrame==0){
+					frame = direction;
+					wasYuluMoving=true;
+					mVelY -= PLAYER_VEL;
+				}
+
+				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
+
+
+
+			break;
+            case SDLK_DOWN:
+				if(direction!=2){
+					wasYuluMoving=false;
+					direction=2;
+				}
+				if(!wasYuluMoving || countFrame==0){
+					frame=direction;
+					wasYuluMoving=true;
+					mVelY += PLAYER_VEL;
+				}
+				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
+
+			break;
+            case SDLK_LEFT:
+				if(direction!=3){
+					wasYuluMoving=false;
+					direction=3;
+				}
+				if(!wasYuluMoving || countFrame==0){
+					frame=direction;
+					wasYuluMoving=true;
+					mVelX -= PLAYER_VEL;
+				}
+				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
+
+			break;
+            case SDLK_RIGHT: 
+				if(direction!=1){
+					wasYuluMoving=false;
+					direction=1;
+				}
+				if(!wasYuluMoving || countFrame==0){
+					frame=direction;
+					wasYuluMoving=true;
+					mVelX += PLAYER_VEL;
+				}
+				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
+
+			break;
+        }
+
+
+
+    }
+    //If a key was released
+    else if( e.type == SDL_KEYUP  )
+    {
+		countFrame=0;
+		// && e.key.repeat == 0
+        //Adjust the velocity
+        // switch( e.key.keysym.sym )
+        // {
+            // case SDLK_UP: mVelY += PLAYER_VEL; break;
+            // case SDLK_DOWN: mVelY -= PLAYER_VEL; break;
+            // case SDLK_LEFT: mVelX += PLAYER_VEL; break;
+            // case SDLK_RIGHT: mVelX -= PLAYER_VEL; break;
+			wasYuluMoving = false;
+        // }
+    }
+}
+void Yulu :: set(int w, int h)
+{
+	YULU_WIDTH=w;
+	YULU_HEIGHT=h;
+}
+void Yulu::move(int camX, int camY)
+{
+    //Move the dot left or right
+    mPosX += mVelX;
+
+    //If the dot went too far to the left or right
+    if( ( mPosX < 0 ) || ( mPosX + YULU_WIDTH-camX > gWindow.getWidth()) )
+    {
+        //Move back
+        mPosX -= mVelX;
+    }
+
+    //Move the dot up or down
+    mPosY += mVelY;
+
+    //If the dot went too far up or down
+    if( ( mPosY < 0 ) || ( mPosY + YULU_HEIGHT -camY > gWindow.getHeight()) )
+    {
+        //Move back
+        mPosY -= mVelY;
+    }
+	if(collided()){
+		mPosX-=mVelX;
+		mPosY-=mVelY;
+	}
+	mVelX=0;
+	mVelY=0;
+
+}
+void Yulu::render( int camX, int camY, SDL_Rect* clip )
+{
+    //Show the dot relative to the camera
+    gYuluSheetTexture.render( mPosX-camX, mPosY-camY,clip );
+}
+
+int Yulu :: getPosX()
+{
+	return mPosX;
+}
+int Yulu :: getPosY()
+{
+	return mPosY;
+}
+
+bool Yulu :: collided()
+{
+	bool collided = false;
+	// // collided = collided||wallCollision(mPosX,mPosY);
+	// collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2))&&(mPosY%(mapTileSize/2)==0);
+	// // collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY)&&(mPosX%mapTileSize==0));
+	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosY%(mapTileSize/2)==0)&&(mPosX%(mapTileSize/2)!=0));
+	// collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT)&&(mPosY%(mapTileSize/2)!=0));
+	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%(mapTileSize/2)!=0));
+	// return collided;
+	if(YULU_WIDTH==mapTileSize){
+	collided = collided||wallCollision(mPosX,mPosY);
+	collided = collided||(wallCollision(mPosX+YULU_WIDTH,mPosY));
+
+	}
+	else{
+	collided = collided||wallCollision(mPosX,mPosY);
+	collided = collided||(wallCollision(mPosX,mPosY+YULU_HEIGHT/2));		
+	}
+	return collided;
 }
 
 
@@ -1045,6 +1290,37 @@ bool loadMedia()
         gSpriteClips[ 7 ].h = 184.5;
 
     }
+    if( !gYuluSheetTexture.loadFromFile( "scooty.png" ) )
+    {
+        printf( "Failed to load walking animation texture!\n" );
+        success = false;
+    }
+    else
+    {
+        //Set sprite clips
+        gYuluClips[ 0 ].x =   0;
+        gYuluClips[ 0 ].y =   0;
+        gYuluClips[ 0 ].w = 233;
+        gYuluClips[ 0 ].h = 386;
+		
+        gYuluClips[1 ].x =   0;
+        gYuluClips[1 ].y =   0;
+        gYuluClips[1 ].w = 233;
+        gYuluClips[1 ].h = 386;
+
+        gYuluClips[ 2 ].x =   0;
+        gYuluClips[ 2 ].y =   0;
+        gYuluClips[ 2 ].w = 233;
+        gYuluClips[ 2 ].h = 386;
+
+        gYuluClips[ 3 ].x =   0;
+        gYuluClips[ 3 ].y =   0;
+        gYuluClips[ 3 ].w = 233;
+        gYuluClips[ 3 ].h = 386;
+
+
+
+    }
 
 
 	return success;
@@ -1124,6 +1400,7 @@ int main( int argc, char* args[] )
 			int curposX = 0;
 			int curposY = 0;
 			int row,col;
+			bool onYulu =false;
 			
 			//While application is running
 			while( !quit )
@@ -1132,9 +1409,24 @@ int main( int argc, char* args[] )
 				while( SDL_PollEvent( &e ) != 0 )
 				{
 					
+				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RSHIFT){
+						onYulu=!onYulu;
+						frame =2;
+						direction=-1;
+					}
+					else
 
+					if(!onYulu){
 					player.handleEvent(e);
 					player.move(camera.x,camera.y);
+					yulu.changePos(player.getPosX(),player.getPosY());
+
+					}
+					else if(onYulu){
+					yulu.handleEvent(e);
+					yulu.move(camera.x,camera.y);	
+					player.changePos(yulu.getPosX(),yulu.getPosY());					
+					}
 					playButton.handle_events(e,true);
 					quitButton.handle_events(e,false);
 					//User , bool playOrNotrequests quit
@@ -1171,29 +1463,56 @@ int main( int argc, char* args[] )
 
 							// prevposX=curposX;
 							// prevposY=curposY;
+						if(!onYulu){
+							camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+							camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+							camera.w = gWindow.getWidth();
+							camera.h = gWindow.getHeight();
 
-						camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
-						camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
-						camera.w = gWindow.getWidth();
-						camera.h = gWindow.getHeight();
+							//Keep the camera in bounds
+							if( camera.x < 0 )
+							{ 
+								camera.x = 0;
+							}
+							if( camera.y < 0 )
+							{
+								camera.y = 0;
+							}
+							if( camera.x > LEVEL_WIDTH - camera.w )
+							{
+								camera.x = LEVEL_WIDTH - camera.w;
+							}
+							if( camera.y > LEVEL_HEIGHT - camera.h )
+							{
+								camera.y = LEVEL_HEIGHT - camera.h;
+							}
+						}
+						else if(onYulu){
+							camera.x = ( yulu.getPosX() + yulu.YULU_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+							camera.y = ( yulu.getPosY() + yulu.YULU_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+							camera.w = gWindow.getWidth();
+							camera.h = gWindow.getHeight();
 
-						//Keep the camera in bounds
-						if( camera.x < 0 )
-						{ 
-							camera.x = 0;
+							//Keep the camera in bounds
+							if( camera.x < 0 )
+							{ 
+								camera.x = 0;
+							}
+							if( camera.y < 0 )
+							{
+								camera.y = 0;
+							}
+							if( camera.x > LEVEL_WIDTH - camera.w )
+							{
+								camera.x = LEVEL_WIDTH - camera.w;
+							}
+							if( camera.y > LEVEL_HEIGHT - camera.h )
+							{
+								camera.y = LEVEL_HEIGHT - camera.h;
+							}
+
 						}
-						if( camera.y < 0 )
-						{
-							camera.y = 0;
-						}
-						if( camera.x > LEVEL_WIDTH - camera.w )
-						{
-							camera.x = LEVEL_WIDTH - camera.w;
-						}
-						if( camera.y > LEVEL_HEIGHT - camera.h )
-						{
-							camera.y = LEVEL_HEIGHT - camera.h;
-						}
+						
 						bg ={camera.x/4,camera.y/4,camera.w/4,camera.h/4};
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
 						gBackgroundPlayTexture.loadFromFile("map.png");
@@ -1220,12 +1539,22 @@ int main( int argc, char* args[] )
 							}
 						}
 						
+						if(!onYulu){
 						SDL_Rect* currentClip = &gSpriteClips[frame];
 						gSpriteSheetTexture.set(30,60);
 						player.set(30,60);
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
 						player.render(camera.x,camera.y,currentClip);
+						}
+						else{
+						SDL_Rect* currentClip = &gYuluClips[frame];
+						gYuluSheetTexture.set(30,60);
+						yulu.set(30,60);
+						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
+						
+						yulu.render(camera.x,camera.y,currentClip);							
+						}
 						SDL_RenderPresent(gRenderer);
 
 
