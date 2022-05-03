@@ -279,6 +279,7 @@ class ScoreCard
 	int health,money,happiness;
 };
 
+
 //Starts up SDL and creates window
 bool init();
 
@@ -302,6 +303,7 @@ LTexture gSpriteSheetTexture;
 LTexture gYuluSheetTexture;
 LTexture gYuluStandRectTexture;
 LTexture gYuluStandSqTexture;
+LTexture ghelpsectionbg;
 Player player;
 Yulu yulu;
 LTexture gPlayBefore;
@@ -315,7 +317,7 @@ int xNoSquares =140;
 int yNoSquares =80;
 int playerHoldMoveSpeed=4;
 int yuluHoldMoveSpeed=1;
-bool play = false;
+int play = 2;
 bool wasPlayerMoving = false;
 bool wasYuluMoving = false;
 int frame =4;
@@ -1202,11 +1204,13 @@ class Button
 	Button( int x, int y, int w, int h, string beforeButton, string afterButton );
 	void set(int x, int y, int w, int h);
     //Handles events and set the button's sprite region
-    void handle_events(SDL_Event &event, bool playOrNot);
+    void handle_events(SDL_Event &event, int playOrNot);
     
     //Shows the button on the screen
     void show();
 };
+
+
 
 Button::Button( int x, int y, int w, int h, string beforeButton, string afterButton )
 {
@@ -1221,6 +1225,7 @@ Button::Button( int x, int y, int w, int h, string beforeButton, string afterBut
 	mHover = afterButton;
     
 }
+
 void Button::set( int x, int y, int w, int h )
 {
     //Set the button's attributes
@@ -1232,7 +1237,7 @@ void Button::set( int x, int y, int w, int h )
     
 }
 
-void Button::handle_events(SDL_Event &event, bool playOrNot)
+void Button::handle_events(SDL_Event &event, int playOrNot)
 {
     //The mouse offsets
     int x = 0, y = 0;
@@ -1294,12 +1299,17 @@ bool loadMedia()
 	bool success = true;
 
 	// Load scene texture
-	if( !gBackgroundStartScreenTexture.loadFromFile("technology-background.jpg"))
+	if( !gBackgroundStartScreenTexture.loadFromFile("gamebg.png"))
 	{
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
-	if( !gPlayBefore.loadFromFile("playBefore.png"))
+	if(!ghelpsectionbg.loadFromFile("helpbg.png")){
+		printf( "Failed to load background texture!\n" );
+		success = false;
+
+	}
+	if( !gPlayBefore.loadFromFile("purplepad.png"))
 	{
 		printf( "Failed to load play button!\n" );
 		success = false;
@@ -1461,12 +1471,30 @@ int main( int argc, char* args[] )
 			bool quit = false;
 
 			//Make the button
-			string beforePlay = "playBefore.png";
+			string beforePlay = "purplepad.png";
 			string beforeQuit = "quitBefore.png";
 			string hoverPlay = "playHover.png";
 			string hoverQuit = "quitHover.png";
-			Button playButton( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5, beforePlay,hoverPlay );
+			string helpus = "helpus.png";
+			string hoverhelpus = "helpusHover.png";
+
+			string beforePlay2 = "playbutton2.png";
+			string hoverPlay2 = "playbutton2Hover.png";
+
+			string backbutton = "back.png";
+			string backbuttonHover = "backHoveer.png";
+			// Button playButton( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5, beforePlay,hoverPlay );
 			Button quitButton( gWindow.getWidth()-gWindow.getWidth()/5,0, gWindow.getWidth()/5, gWindow.getHeight()/10, beforeQuit,hoverQuit );
+
+			Button playButton2( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/4, gWindow.getHeight()/4, beforePlay,hoverPlay );
+			
+			Button playButton1( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/4, gWindow.getHeight()/4, beforePlay2,hoverPlay2 );
+			Button helpus1 ( (gWindow.getWidth()*9)/10-gWindow.getWidth()/10, (gWindow.getHeight()*9)/10-gWindow.getHeight()/10, gWindow.getWidth()/10, gWindow.getHeight()/10, helpus,hoverhelpus );
+		    
+			Button back ( (gWindow.getWidth()*9)/10-gWindow.getWidth()/10, (gWindow.getHeight()*9)/10-gWindow.getHeight()/10, gWindow.getWidth()/10, gWindow.getHeight()/10, backbutton, backbuttonHover );
+		    
+
+
 			bool eraseMark = false;
 			//Event handler
 			SDL_Event e;
@@ -1506,8 +1534,11 @@ int main( int argc, char* args[] )
 					yulu.move(camera.x,camera.y);	
 					player.changePos(yulu.getPosX(),yulu.getPosY());					
 					}
-					playButton.handle_events(e,true);
-					quitButton.handle_events(e,false);
+					playButton2.handle_events(e,1);
+					playButton1.handle_events(e,1);
+					helpus1.handle_events(e,0);
+					quitButton.handle_events(e,1);
+					back.handle_events(e,2);
 					//User , bool playOrNotrequests quit
 					if( e.type == SDL_QUIT )
 					{
@@ -1537,7 +1568,7 @@ int main( int argc, char* args[] )
 				//Only draw when not minimized
 				if( !gWindow.isMinimized() )
 				{
-					if(play)
+					if(play == 1)
 					{
 						
 
@@ -1682,15 +1713,33 @@ int main( int argc, char* args[] )
 
 
 					}
+					else if(play == 0){
+						frame =4;
+					camera.x =0;
+					camera.y =0;
+					player.reset();
+
+					ghelpsectionbg.set(gWindow.getWidth(),gWindow.getHeight());
+					ghelpsectionbg.render(0,0);
+
+					back.set( (gWindow.getWidth()*90)/100-gWindow.getWidth()/10, (gWindow.getHeight()*995)/1000-gWindow.getHeight()/10, (gWindow.getWidth()*30)/100, (gWindow.getHeight()*5)/100 );
+					back.show();
+
+					SDL_RenderPresent( gRenderer );
+					}
 					else{
 
 					frame =4;
 					camera.x =0;
 					camera.y =0;
 					player.reset();
-					camera.x =0;
-					camera.y =0;
-					playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
+				
+					// playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
+					playButton2.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*69)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
+					playButton1.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*79)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
+					helpus1.set( (gWindow.getWidth()*90)/100-gWindow.getWidth()/10, (gWindow.getHeight()*995)/1000-gWindow.getHeight()/10, (gWindow.getWidth()*30)/100, (gWindow.getHeight()*5)/100 );
+
+
 					SDL_Color textColor = { 255, 255, 255, 255 };
 					string newGame = "New Game";
 					string quit = "Quit";
@@ -1698,7 +1747,12 @@ int main( int argc, char* args[] )
 					gBackgroundStartScreenTexture.set(gWindow.getWidth(),gWindow.getHeight());
 					gBackgroundStartScreenTexture.render(0,0);
 					
-					playButton.show();
+					// playButton.show();
+					playButton2.show();
+					playButton1.show();
+					helpus1.show();
+
+				
 					//Update screen
 					SDL_RenderPresent( gRenderer );
 					
