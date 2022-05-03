@@ -485,11 +485,11 @@ bool Player :: collided()
 {
 	bool collided = false;
 	// collided = collided||wallCollision(mPosX,mPosY);
-	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2))&&(mPosY%mapTileSize==0);
+	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT/2))&&(mPosY%(mapTileSize/2)==0);
 	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY)&&(mPosX%mapTileSize==0));
-	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosY%mapTileSize==0)&&(mPosX%mapTileSize!=0));
-	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
-	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%mapTileSize!=0));
+	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT/2)&&(mPosY%(mapTileSize/2)==0)&&(mPosX%(mapTileSize/2)!=0));
+	collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT)&&(mPosY%(mapTileSize/2)!=0));
+	collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%(mapTileSize/2)!=0));
 	return collided;
 	
 }
@@ -1194,9 +1194,9 @@ int main( int argc, char* args[] )
 						{
 							camera.y = LEVEL_HEIGHT - camera.h;
 						}
-						bg ={camera.x/2,camera.y/2,camera.w/2,camera.h/2};
+						bg ={camera.x/4,camera.y/4,camera.w/4,camera.h/4};
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
-						gBackgroundPlayTexture.loadFromFile("map.jpg");
+						gBackgroundPlayTexture.loadFromFile("map.png");
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
 						gBackgroundPlayTexture.render(0,0,&bg);
 
