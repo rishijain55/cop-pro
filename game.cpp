@@ -1537,7 +1537,7 @@ int main( int argc, char* args[] )
 					playButton2.handle_events(e,1);
 					playButton1.handle_events(e,1);
 					helpus1.handle_events(e,0);
-					quitButton.handle_events(e,1);
+					quitButton.handle_events(e,2);
 					back.handle_events(e,2);
 					//User , bool playOrNotrequests quit
 					if( e.type == SDL_QUIT )
