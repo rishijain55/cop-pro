@@ -287,6 +287,8 @@ LTexture gBackgroundStartScreenTexture;
 LTexture gBackgroundPlayTexture;
 LTexture gSpriteSheetTexture;
 LTexture gYuluSheetTexture;
+LTexture gYuluStandRectTexture;
+LTexture gYuluStandSqTexture;
 Player player;
 Yulu yulu;
 LTexture gPlayBefore;
@@ -648,7 +650,10 @@ void Yulu::handleEvent( SDL_Event& e )
 				}
 				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
 
+			break; 
+			default :
 			break;
+
         }
 
 
@@ -1232,6 +1237,16 @@ bool loadMedia()
 		printf( "Failed to load play button on hover!\n" );
 		success = false;
 	}
+	if( !gYuluStandRectTexture.loadFromFile("yulurect.png"))
+	{
+		printf( "Failed to load yulu stand!\n" );
+		success = false;
+	}
+	if( !gYuluStandSqTexture.loadFromFile("yulusquare.png"))
+	{
+		printf( "Failed to load yulu stand!\n" );
+		success = false;
+	}
 
     gFont = TTF_OpenFont( "Bevan.ttf", 28 );
     if( gFont == NULL )
@@ -1563,8 +1578,23 @@ int main( int argc, char* args[] )
 						yulu.render(camera.x,camera.y,currentClip);							
 						}
 						SDL_Color white = {255,255,255,255};
+
+						gYuluStandRectTexture.set(240,120);
+						gYuluStandSqTexture.set(100,100);
+						SDL_Point p ={0,0};
+						SDL_Point* point =&p;
+						gYuluStandRectTexture.render(1110-camera.x,660-camera.y,NULL,-90,point);
+						gYuluStandRectTexture.set(210,105);
+						gYuluStandRectTexture.render(3705-camera.x,2325-camera.y);
+						gYuluStandRectTexture.set(280,120);
+						gYuluStandRectTexture.render(570-camera.x,930-camera.y);
+						gYuluStandSqTexture.render(6460-camera.x,400-camera.y);
+						gYuluStandSqTexture.render(6700-camera.x,1600-camera.y);
+						gYuluStandSqTexture.set(160,160);
+						gYuluStandSqTexture.render(1900-camera.x,2920-camera.y);
+						quitButton.show();
 						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){							yuluText.loadFromRenderedText("Press RSHIFT for YULU",white);
-							yuluText.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()/2-yuluText.getHeight()/2);
+							yuluText.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()-yuluText.getHeight()*4);
 						
 						}
 						SDL_RenderPresent(gRenderer);
@@ -1582,7 +1612,7 @@ int main( int argc, char* args[] )
 						// 	prevposX=curposX;
 						// 	prevposY=curposY;
 						// }
-						quitButton.show();
+						
 
 
 
