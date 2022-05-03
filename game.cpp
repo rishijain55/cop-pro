@@ -97,6 +97,7 @@ int tile[80][140]={
 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
 };
+// int tile[80][140]={};
 int temp[80][140]={0};
 
 
@@ -292,6 +293,7 @@ LTexture gPlayBefore;
 LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
+LTexture yuluText;
 int mapTileSize = 60;
 int xNoSquares =140;
 int yNoSquares =80;
@@ -1406,9 +1408,11 @@ int main( int argc, char* args[] )
 				{
 					
 				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RSHIFT){
+						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){
 						onYulu=!onYulu;
 						frame =2;
 						direction=-1;
+						}
 					}
 					else
 
@@ -1516,8 +1520,9 @@ int main( int argc, char* args[] )
 						gBackgroundPlayTexture.render(0,0,&bg);
 
 						// //for marking where temp is set to 1
-						// curposX = player.getPosX();
-						// curposY = player.getPosY()+player.PLAYER_HEIGHT/2;
+						curposX = player.getPosX();
+						curposY = player.getPosY();
+						cout<<curposX<<" "<<curposY<<endl;
 						// row = mapElement(curposX,curposY)/xNoSquares;
 						// col = mapElement(curposX,curposY)%xNoSquares;
 						// cout<<row<<" "<<col<<endl;
@@ -1556,6 +1561,11 @@ int main( int argc, char* args[] )
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
 						yulu.render(camera.x,camera.y,currentClip);							
+						}
+						SDL_Color white = {255,255,255,255};
+						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){							yuluText.loadFromRenderedText("Press RSHIFT for YULU",white);
+							yuluText.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()/2-yuluText.getHeight()/2);
+						
 						}
 						SDL_RenderPresent(gRenderer);
 
