@@ -260,18 +260,18 @@ LTexture quitText;
 int mapTileSize = 30;
 int xNoSquares =140;
 int yNoSquares =80;
-int playerHoldMoveSpeed=4;
+int playerHoldMoveSpeed=3;
 bool play = false;
 bool wasMoving = false;
 int frame =4;
 int countFrame =0;
+int direction =-1;
 
 
 const int WALKING_ANIMATION_FRAMES = 8;
 SDL_Rect gSpriteClips[ WALKING_ANIMATION_FRAMES ];
 
 TTF_Font *gFont = NULL;
-
 int mapElement(int posX,int posY){
 	int x = posX/mapTileSize;
 	int y = posY/mapTileSize;
@@ -358,8 +358,12 @@ void Player::handleEvent( SDL_Event& e )
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
+
             case SDLK_UP: 
-				
+				if(direction!=0){
+					countFrame=0;
+					direction=0;
+				}
 				if(!wasMoving || countFrame==0){
 					changeFrame(0);
 					wasMoving=true;
@@ -372,7 +376,10 @@ void Player::handleEvent( SDL_Event& e )
 
 			break;
             case SDLK_DOWN:
-				 
+				if(direction!=2){
+					countFrame=0;
+					direction=2;
+				}
 				if(!wasMoving || countFrame==0){
 					changeFrame(2);
 					wasMoving=true;
@@ -382,7 +389,10 @@ void Player::handleEvent( SDL_Event& e )
 
 			break;
             case SDLK_LEFT:
-				 
+				if(direction!=3){
+					countFrame=0;
+					direction=3;
+				}
 				if(!wasMoving || countFrame==0){
 					changeFrame(3);
 					wasMoving=true;
@@ -392,7 +402,10 @@ void Player::handleEvent( SDL_Event& e )
 
 			break;
             case SDLK_RIGHT: 
-				 
+				if(direction!=1){
+					countFrame=0;
+					direction=1;
+				}
 				if(!wasMoving || countFrame==0){
 					changeFrame(1);
 					wasMoving=true;
