@@ -1,6 +1,3 @@
-/*This source code copyrighted by Lazy Foo' Productions (2004-2022)
-and may not be redistributed without written permission.*/
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include<SDL2/SDL_image.h>
@@ -15,11 +12,11 @@ using namespace std;
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-const int LEVEL_WIDTH = 4200;
-const int LEVEL_HEIGHT = 2400;
+const int LEVEL_WIDTH = 8400;
+const int LEVEL_HEIGHT = 4800;
 
 int tile[80][140]={
-{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
 {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
 {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
@@ -257,10 +254,10 @@ LTexture gPlayBefore;
 LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
-int mapTileSize = 30;
+int mapTileSize = 60;
 int xNoSquares =140;
 int yNoSquares =80;
-int playerHoldMoveSpeed=3;
+int playerHoldMoveSpeed=4;
 bool play = false;
 bool wasMoving = false;
 int frame =4;
@@ -361,7 +358,7 @@ void Player::handleEvent( SDL_Event& e )
 
             case SDLK_UP: 
 				if(direction!=0){
-					countFrame=0;
+					wasMoving=false;
 					direction=0;
 				}
 				if(!wasMoving || countFrame==0){
@@ -377,7 +374,7 @@ void Player::handleEvent( SDL_Event& e )
 			break;
             case SDLK_DOWN:
 				if(direction!=2){
-					countFrame=0;
+					wasMoving=false;
 					direction=2;
 				}
 				if(!wasMoving || countFrame==0){
@@ -390,7 +387,7 @@ void Player::handleEvent( SDL_Event& e )
 			break;
             case SDLK_LEFT:
 				if(direction!=3){
-					countFrame=0;
+					wasMoving=false;
 					direction=3;
 				}
 				if(!wasMoving || countFrame==0){
@@ -403,7 +400,7 @@ void Player::handleEvent( SDL_Event& e )
 			break;
             case SDLK_RIGHT: 
 				if(direction!=1){
-					countFrame=0;
+					wasMoving=false;
 					direction=1;
 				}
 				if(!wasMoving || countFrame==0){
@@ -1121,6 +1118,7 @@ int main( int argc, char* args[] )
 			//Event handler
 			SDL_Event e;
 			SDL_Rect camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
+			SDL_Rect bg = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
 			int prevposX = 0;
 			int prevposY = 0;
 			int curposX = 0;
@@ -1196,11 +1194,11 @@ int main( int argc, char* args[] )
 						{
 							camera.y = LEVEL_HEIGHT - camera.h;
 						}
-						
+						bg ={camera.x/2,camera.y/2,camera.w/2,camera.h/2};
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
-						gBackgroundPlayTexture.loadFromFile("mini(1).png");
+						gBackgroundPlayTexture.loadFromFile("map.jpg");
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
-						gBackgroundPlayTexture.render(0,0,&camera);
+						gBackgroundPlayTexture.render(0,0,&bg);
 
 						// //for marking where temp is set to 1
 						// curposX = player.getPosX();
@@ -1213,14 +1211,14 @@ int main( int argc, char* args[] )
 						// }
 						// // isvis[row+1][col]=1;
 
-						// //displaying temp
-						// for(int i =0;i<80;i++){
-						// 	for(int j=0;j<140;j++){
-						// 		if(temp[i][j]==1){
-						// 			drawTexture(j*mapTileSize-camera.x,i*mapTileSize-camera.y,mapTileSize,mapTileSize,0,0,0,100);
-						// 		}
-						// 	}
-						// }
+						//displaying temp
+						for(int i =0;i<80;i++){
+							for(int j=0;j<140;j++){
+								if(tile[i][j]==1){
+									drawTexture(j*mapTileSize-camera.x,i*mapTileSize-camera.y,mapTileSize,mapTileSize,0,0,0,100);
+								}
+							}
+						}
 						
 						SDL_Rect* currentClip = &gSpriteClips[frame];
 						gSpriteSheetTexture.set(30,60);
