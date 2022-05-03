@@ -1299,44 +1299,44 @@ bool loadMedia()
 	bool success = true;
 
 	// Load scene texture
-	if( !gBackgroundStartScreenTexture.loadFromFile("gamebg.png"))
+	if( !gBackgroundStartScreenTexture.loadFromFile("../assets/gamebg.png"))
 	{
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
-	if(!ghelpsectionbg.loadFromFile("helpbg.png")){
+	if(!ghelpsectionbg.loadFromFile("../assets/helpbg.png")){
 		printf( "Failed to load background texture!\n" );
 		success = false;
 
 	}
-	if( !gPlayBefore.loadFromFile("purplepad.png"))
+	if( !gPlayBefore.loadFromFile("../assets/purplepad.png"))
 	{
 		printf( "Failed to load play button!\n" );
 		success = false;
 	}
-	if( !gPlayHover.loadFromFile("playHover.png"))
+	if( !gPlayHover.loadFromFile("../assets/playHover.png"))
 	{
 		printf( "Failed to load play button on hover!\n" );
 		success = false;
 	}
-	if( !gYuluStandRectTexture.loadFromFile("yulurect.png"))
+	if( !gYuluStandRectTexture.loadFromFile("../assets/yulurect.png"))
 	{
 		printf( "Failed to load yulu stand!\n" );
 		success = false;
 	}
-	if( !gYuluStandSqTexture.loadFromFile("yulusquare.png"))
+	if( !gYuluStandSqTexture.loadFromFile("../assets/yulusquare.png"))
 	{
 		printf( "Failed to load yulu stand!\n" );
 		success = false;
 	}
 
-    gFont = TTF_OpenFont( "Bevan.ttf", 28 );
+    gFont = TTF_OpenFont( "../assets/Bevan.ttf", 28 );
     if( gFont == NULL )
     {
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
         success = false;
     }
-    if( !gSpriteSheetTexture.loadFromFile( "movingman.png" ) )
+    if( !gSpriteSheetTexture.loadFromFile( "../assets/movingman.png" ) )
     {
         printf( "Failed to load walking animation texture!\n" );
         success = false;
@@ -1385,7 +1385,7 @@ bool loadMedia()
         gSpriteClips[ 7 ].h = 184.5;
 
     }
-    if( !gYuluSheetTexture.loadFromFile( "bike.png" ) )
+    if( !gYuluSheetTexture.loadFromFile( "../assets/bike.png" ) )
     {
         printf( "Failed to load walking animation texture!\n" );
         success = false;
@@ -1471,18 +1471,18 @@ int main( int argc, char* args[] )
 			bool quit = false;
 
 			//Make the button
-			string beforePlay = "purplepad.png";
-			string beforeQuit = "quitBefore.png";
-			string hoverPlay = "playHover.png";
-			string hoverQuit = "quitHover.png";
-			string helpus = "helpus.png";
-			string hoverhelpus = "helpusHover.png";
+			string beforePlay = "../assets/purplepad.png";
+			string beforeQuit = "../assets/quitBefore.png";
+			string hoverPlay = "../assets/playHover.png";
+			string hoverQuit = "../assets/quitHover.png";
+			string helpus = "../assets/helpus.png";
+			string hoverhelpus = "../assets/helpusHover.png";
 
-			string beforePlay2 = "playbutton2.png";
-			string hoverPlay2 = "playbutton2Hover.png";
+			string beforePlay2 = "../assets/playbutton2.png";
+			string hoverPlay2 = "../assets/playbutton2Hover.png";
 
-			string backbutton = "back.png";
-			string backbuttonHover = "backHoveer.png";
+			string backbutton = "../assets/back.png";
+			string backbuttonHover = "../assets/backHoveer.png";
 			// Button playButton( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5, beforePlay,hoverPlay );
 			Button quitButton( gWindow.getWidth()-gWindow.getWidth()/5,0, gWindow.getWidth()/5, gWindow.getHeight()/10, beforeQuit,hoverQuit );
 
@@ -1670,7 +1670,7 @@ int main( int argc, char* args[] )
 						
 						bg ={camera.x/4,camera.y/4,camera.w/4,camera.h/4};
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
-						gBackgroundPlayTexture.loadFromFile("map.png");
+						gBackgroundPlayTexture.loadFromFile("../assets/map.png");
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
 						gBackgroundPlayTexture.render(0,0,&bg);
 
