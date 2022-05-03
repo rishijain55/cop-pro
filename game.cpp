@@ -261,10 +261,23 @@ class Yulu
         int mPosX, mPosY;
         //The velocity of the dot
         int mVelX, mVelY;
-
+		
 };
 
-
+class ScoreCard
+{
+	public:
+	int healthLimit=100;
+	int moneyLimit=1000;
+	int happinessLimit=10;
+	ScoreCard();
+	void changeHealth(int offset);
+	void changeMoney(int offset);
+	void changeHappiness(int offset);
+	void render();
+	private:
+	int health,money,happiness;
+};
 
 //Starts up SDL and creates window
 bool init();
@@ -296,6 +309,7 @@ LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
 LTexture yuluText;
+ScoreCard playerScore;
 int mapTileSize = 60;
 int xNoSquares =140;
 int yNoSquares =80;
@@ -317,6 +331,16 @@ SDL_Rect gYuluClips[ YULU_ANIMATION_FRAMES ];
 
 TTF_Font *gFont = NULL;
 
+void drawTexture( int x, int y, int w, int h, int r, int g, int b, int opak )
+{
+	SDL_Rect fillRect = { x, y , w, h};
+	SDL_SetRenderDrawColor(gRenderer, r, g, b, opak ); 
+	SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);       
+	SDL_RenderFillRect(gRenderer, &fillRect );   
+	
+}
+
+
 int mapElement(int posX,int posY){
 	int x = posX/mapTileSize;
 	int y = posY/mapTileSize;
@@ -333,7 +357,55 @@ bool wallCollision(int x,int y)
 	return tile[tileRow][tileCol]==0;
 
 }
+ScoreCard :: ScoreCard()
+{
+	money=100;
+	happiness=5;
+	health=100;
 
+}
+
+void ScoreCard::changeHealth(int offset)
+{
+	health+=offset;
+	if(health>=healthLimit){
+		health=healthLimit;
+	}
+	else if(health<0){
+		health=0;
+	}
+}
+void ScoreCard::changeMoney(int offset)
+{
+	money+=offset;
+	if(money>=moneyLimit){
+		money=moneyLimit;
+	}
+	else if(money<0){
+		money=0;
+	}
+}
+void ScoreCard::changeHappiness(int offset)
+{
+	happiness+=offset;
+	if(happiness>=happinessLimit){
+		happiness=happinessLimit;
+	}
+	else if(happiness<0){
+		happiness=0;
+	}
+}
+
+void ScoreCard :: render()
+{
+	drawTexture(0,0,gWindow.getWidth()/10,gWindow.getHeight()/10,0,255,255,200);
+	float healthWidth = (gWindow.getWidth()*0.09)*((health*1.0)/healthLimit);
+	float moneyWidth = (gWindow.getWidth()*0.09)*((money*1.0)/moneyLimit);
+	float happinessWidth = (gWindow.getWidth()*0.09)*((happiness*1.0)/happinessLimit);
+	drawTexture(gWindow.getWidth()*(0.005),gWindow.getHeight()*(0.01),healthWidth,gWindow.getHeight()*0.02,255,0,0,255);
+	drawTexture(gWindow.getWidth()*(0.005),gWindow.getHeight()*(0.04),moneyWidth,gWindow.getHeight()*0.02,255,215,0,255);
+	drawTexture(gWindow.getWidth()*(0.005),gWindow.getHeight()*(0.07),happinessWidth,gWindow.getHeight()*0.02,255,182,193,255);
+}
 Player::Player()
 {
     //Initialize the offsets
@@ -1339,14 +1411,6 @@ bool loadMedia()
 	return success;
 }
 
-void drawTexture( int x, int y, int w, int h, int r, int g, int b, int opak )
-{
-	SDL_Rect fillRect = { x, y , w, h};
-	SDL_SetRenderDrawColor(gRenderer, r, g, b, opak ); 
-	SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);       
-	SDL_RenderFillRect(gRenderer, &fillRect );   
-	
-}
 
 
 
@@ -1475,6 +1539,7 @@ int main( int argc, char* args[] )
 				{
 					if(play)
 					{
+						
 
 							// prevposX=curposX;
 							// prevposY=curposY;
@@ -1578,7 +1643,7 @@ int main( int argc, char* args[] )
 						yulu.render(camera.x,camera.y,currentClip);							
 						}
 						SDL_Color white = {255,255,255,255};
-
+						playerScore.render();
 						gYuluStandRectTexture.set(240,120);
 						gYuluStandSqTexture.set(100,100);
 						SDL_Point p ={0,0};
@@ -1623,7 +1688,8 @@ int main( int argc, char* args[] )
 					camera.x =0;
 					camera.y =0;
 					player.reset();
-
+					camera.x =0;
+					camera.y =0;
 					playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/2-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
 					SDL_Color textColor = { 255, 255, 255, 255 };
 					string newGame = "New Game";
