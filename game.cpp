@@ -727,15 +727,11 @@ bool Yulu :: collided()
 	// collided = collided||(wallCollision(mPosX,mPosY+PLAYER_HEIGHT)&&(mPosY%(mapTileSize/2)!=0));
 	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY+PLAYER_HEIGHT)&&(mPosY%(mapTileSize/2)!=0));
 	// return collided;
-	if(YULU_WIDTH==mapTileSize){
-	collided = collided||wallCollision(mPosX,mPosY);
-	collided = collided||(wallCollision(mPosX+YULU_WIDTH,mPosY));
 
-	}
-	else{
 	collided = collided||wallCollision(mPosX,mPosY);
 	collided = collided||(wallCollision(mPosX,mPosY+YULU_HEIGHT/2));		
-	}
+	collided = collided||(wallCollision(mPosX+YULU_WIDTH/2,mPosY+YULU_HEIGHT/2));		
+	collided = collided||(wallCollision(mPosX+YULU_WIDTH/2,mPosY));		
 	return collided;
 }
 
@@ -1290,7 +1286,7 @@ bool loadMedia()
         gSpriteClips[ 7 ].h = 184.5;
 
     }
-    if( !gYuluSheetTexture.loadFromFile( "scooty.png" ) )
+    if( !gYuluSheetTexture.loadFromFile( "bike.png" ) )
     {
         printf( "Failed to load walking animation texture!\n" );
         success = false;
@@ -1300,23 +1296,23 @@ bool loadMedia()
         //Set sprite clips
         gYuluClips[ 0 ].x =   0;
         gYuluClips[ 0 ].y =   0;
-        gYuluClips[ 0 ].w = 233;
-        gYuluClips[ 0 ].h = 386;
+        gYuluClips[ 0 ].w = 120;
+        gYuluClips[ 0 ].h = 181;
 		
-        gYuluClips[1 ].x =   0;
+        gYuluClips[1 ].x =   220;
         gYuluClips[1 ].y =   0;
-        gYuluClips[1 ].w = 233;
-        gYuluClips[1 ].h = 386;
+        gYuluClips[1 ].w = 181;
+        gYuluClips[1 ].h = 120;
 
-        gYuluClips[ 2 ].x =   0;
+        gYuluClips[ 2 ].x =   120;
         gYuluClips[ 2 ].y =   0;
-        gYuluClips[ 2 ].w = 233;
-        gYuluClips[ 2 ].h = 386;
+        gYuluClips[ 2 ].w = 120;
+        gYuluClips[ 2 ].h = 181;
 
-        gYuluClips[ 3 ].x =   0;
-        gYuluClips[ 3 ].y =   0;
-        gYuluClips[ 3 ].w = 233;
-        gYuluClips[ 3 ].h = 386;
+        gYuluClips[ 3 ].x =   220;
+        gYuluClips[ 3 ].y =   120;
+        gYuluClips[ 3 ].w = 181;
+        gYuluClips[ 3 ].h = 120;
 
 
 
@@ -1549,8 +1545,14 @@ int main( int argc, char* args[] )
 						}
 						else{
 						SDL_Rect* currentClip = &gYuluClips[frame];
-						gYuluSheetTexture.set(30,60);
-						yulu.set(30,60);
+						if(direction==0|| direction==2){
+						gYuluSheetTexture.set(60,60);
+						yulu.set(60,60);
+						}
+						else{
+						gYuluSheetTexture.set(60,60);
+						yulu.set(60,60);						
+						}
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
 						yulu.render(camera.x,camera.y,currentClip);							
