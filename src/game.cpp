@@ -311,6 +311,9 @@ LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
 LTexture yuluText;
+LTexture gHeartTexture;
+LTexture gCoinTexture;
+LTexture gHappinessTexture;
 ScoreCard playerScore;
 int mapTileSize = 60;
 int xNoSquares =140;
@@ -340,6 +343,13 @@ void drawTexture( int x, int y, int w, int h, int r, int g, int b, int opak )
 	SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);       
 	SDL_RenderFillRect(gRenderer, &fillRect );   
 	
+}
+void drawBorder(int x,int y,int w,int h,int thickness,int r,int g,int b,int opak)
+{
+	drawTexture(x-thickness,y-thickness,w+2*thickness,thickness,r,g,b,opak);
+	drawTexture(x-thickness,y-thickness,thickness,h+2*thickness,r,g,b,opak);
+	drawTexture(x+w,y-thickness,thickness,h+2*thickness,r,g,b,opak);
+	drawTexture(x-thickness,y+h,w+2*thickness,thickness,r,g,b,opak);
 }
 
 
@@ -400,13 +410,23 @@ void ScoreCard::changeHappiness(int offset)
 
 void ScoreCard :: render()
 {
-	drawTexture(0,0,gWindow.getWidth()/10,gWindow.getHeight()/10,0,255,255,200);
-	float healthWidth = (gWindow.getWidth()*0.09)*((health*1.0)/healthLimit);
-	float moneyWidth = (gWindow.getWidth()*0.09)*((money*1.0)/moneyLimit);
-	float happinessWidth = (gWindow.getWidth()*0.09)*((happiness*1.0)/happinessLimit);
-	drawTexture(gWindow.getWidth()*(0.005),gWindow.getHeight()*(0.01),healthWidth,gWindow.getHeight()*0.02,255,0,0,255);
-	drawTexture(gWindow.getWidth()*(0.005),gWindow.getHeight()*(0.04),moneyWidth,gWindow.getHeight()*0.02,255,215,0,255);
-	drawTexture(gWindow.getWidth()*(0.005),gWindow.getHeight()*(0.07),happinessWidth,gWindow.getHeight()*0.02,255,182,193,255);
+	// drawTexture(0,0,gWindow.getWidth()/10,gWindow.getHeight()/10,0,255,255,200);
+	gHappinessTexture.set(30,30);
+	gHeartTexture.set(30,30);
+	gCoinTexture.set(30,30);
+	int thickness =3;
+	float healthWidth = 200*((health*1.0)/healthLimit);
+	float moneyWidth = 200*((money*1.0)/moneyLimit);
+	float happinessWidth = 200*((happiness*1.0)/happinessLimit);
+	drawTexture(45,5,healthWidth,20,255,0,0,255);
+	drawBorder(45,5,200,20,thickness,255,255,255,255);
+	drawTexture(45,45,moneyWidth,20,255,215,0,255);
+	drawBorder(45,45,200,20,thickness,255,255,255,255);
+	drawTexture(45,85,happinessWidth,20,255,182,193,255);
+	drawBorder(45,85,200,20,thickness,255,255,255,255);
+	gHeartTexture.render(5,0);
+	gCoinTexture.render(5,40);
+	gHappinessTexture.render(5,80);
 }
 Player::Player()
 {
@@ -1304,6 +1324,22 @@ bool loadMedia()
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
+	if( !gHeartTexture.loadFromFile("../assets/heart.png"))
+	{
+		printf( "Failed to load heart!\n" );
+		success = false;
+	}
+	if( !gCoinTexture.loadFromFile("../assets/coin.png"))
+	{
+		printf( "Failed to load coin!\n" );
+		success = false;
+	}
+	if( !gHappinessTexture.loadFromFile("../assets/happy.png"))
+	{
+		printf( "Failed to load happiness!\n" );
+		success = false;
+	}
+
 	if(!ghelpsectionbg.loadFromFile("../assets/helpbg.png")){
 		printf( "Failed to load background texture!\n" );
 		success = false;
@@ -1718,7 +1754,7 @@ int main( int argc, char* args[] )
 						yulu.render(camera.x,camera.y,currentClip);							
 						}
 						SDL_Color white = {255,255,255,255};
-						playerScore.render();
+						
 						gYuluStandRectTexture.set(240,120);
 						gYuluStandSqTexture.set(100,100);
 						SDL_Point p ={0,0};
@@ -1732,11 +1768,13 @@ int main( int argc, char* args[] )
 						gYuluStandSqTexture.render(6700-camera.x,1600-camera.y);
 						gYuluStandSqTexture.set(160,160);
 						gYuluStandSqTexture.render(1900-camera.x,2920-camera.y);
-						quitButton.show();
+						
 						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){							yuluText.loadFromRenderedText("Press RSHIFT for YULU",white);
 							yuluText.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()-yuluText.getHeight()*4);
 						
 						}
+						playerScore.render();
+						quitButton.show();
 						SDL_RenderPresent(gRenderer);
 
 
