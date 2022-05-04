@@ -314,6 +314,7 @@ LTexture yuluText;
 LTexture gHeartTexture;
 LTexture gCoinTexture;
 LTexture gHappinessTexture;
+LTexture gMoneyTextTexture;
 ScoreCard playerScore;
 int mapTileSize = 60;
 int xNoSquares =140;
@@ -414,19 +415,27 @@ void ScoreCard :: render()
 	gHappinessTexture.set(30,30);
 	gHeartTexture.set(30,30);
 	gCoinTexture.set(30,30);
+	SDL_Color gold = {255,215,0,255};
+	string moneyString = to_string(money);
 	int thickness =3;
 	float healthWidth = 200*((health*1.0)/healthLimit);
 	float moneyWidth = 200*((money*1.0)/moneyLimit);
 	float happinessWidth = 200*((happiness*1.0)/happinessLimit);
 	drawTexture(45,5,healthWidth,20,255,0,0,255);
 	drawBorder(45,5,200,20,thickness,255,255,255,255);
-	drawTexture(45,45,moneyWidth,20,255,215,0,255);
+	gMoneyTextTexture.loadFromRenderedText(moneyString,gold);
+	float textHeight =30;
+	float textWidth = textHeight*(gMoneyTextTexture.getWidth()/(1.0*gMoneyTextTexture.getHeight()));
+	gMoneyTextTexture.set(textWidth,textHeight);
+	// drawTexture(45,45,moneyWidth,20,255,215,0,255);
+	
+	// drawBorder(45,45,200,20,thickness,255,255,255,255);
+	drawTexture(45,45,happinessWidth,20,255,182,193,255);
 	drawBorder(45,45,200,20,thickness,255,255,255,255);
-	drawTexture(45,85,happinessWidth,20,255,182,193,255);
-	drawBorder(45,85,200,20,thickness,255,255,255,255);
 	gHeartTexture.render(5,0);
-	gCoinTexture.render(5,40);
-	gHappinessTexture.render(5,80);
+	gCoinTexture.render(5,80);
+	gHappinessTexture.render(5,40);
+	gMoneyTextTexture.render(45,80);
 }
 Player::Player()
 {
