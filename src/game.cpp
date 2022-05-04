@@ -373,6 +373,8 @@ LTexture gYuluStandSqTexture;
 LTexture ghelpsectionbg;
 LTexture gProfessorTexture;
 LTexture gDogTexture;
+LTexture dogTextTexture;
+LTexture profTextTexture;
 Player player;
 Yulu yulu;
 Dog dog1;
@@ -1797,15 +1799,22 @@ void close()
 
 bool CheckCaught(){
 	bool caught=false;
+	SDL_Color white ={255,255,255,255};
 	if(player.getPosX()>=professor1.getPosX()-3*mapTileSize && player.getPosX()<professor1.getPosX()+mapTileSize*7/2 && player.getPosY()>=professor1.getPosY()-3*mapTileSize && player.getPosY()<professor1.getPosY()+mapTileSize*4 ){
 		caught=true;
 		playerScore.changeHappiness(-1);
 		player.changePos(7200,1380);
+
 	}
 	if(player.getPosX()>=dog1.getPosX()-mapTileSize&& player.getPosX()<dog1.getPosX()+mapTileSize*2 && player.getPosY()>=dog1.getPosY()-mapTileSize && player.getPosY()<dog1.getPosY()+mapTileSize*2 ){
 		caught=true;
 		playerScore.changeHealth(-10);
 		player.changePos(4800,2040);
+		// dogTextTexture.loadFromRenderedText("Ahhhh......",white);
+		// dogTextTexture.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()-yuluText.getHeight()*4);
+		// SDL_RenderPresent(gRenderer);
+		// SDL_Delay(1000);
+		
 	}
 
 	return caught;
@@ -1950,9 +1959,7 @@ int main( int argc, char* args[] )
 				//Only draw when not minimized
 				if( !gWindow.isMinimized() )
 				{
-					if(CheckCaught()){
-						onYulu=0;
-					};
+
 					if(play == 1)
 					{
 
@@ -1961,11 +1968,11 @@ int main( int argc, char* args[] )
 						
 					}
 						professorFrame= (professorFrame+1)%4;
-					if(DogFrame==3){
+					if(DogFrame==1){
 						dog1.move();
 						
 					}
-						DogFrame= (DogFrame+1)%4;
+						DogFrame= (DogFrame+1)%2;
 
 
 
@@ -2098,7 +2105,19 @@ int main( int argc, char* args[] )
 						}
 						playerScore.render();
 						quitButton.show();
-						SDL_RenderPresent(gRenderer);
+						bool nishant = CheckCaught();
+						if(nishant){
+							dogTextTexture.loadFromRenderedText("Ahhhh......",white);
+							dogTextTexture.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()-yuluText.getHeight()*4);
+							SDL_RenderPresent(gRenderer);
+							SDL_Delay(500);
+							onYulu=0;
+
+						}
+						else{
+							SDL_RenderPresent(gRenderer);							
+						
+						}
 
 
 						// if(curposX!=prevposX || curposY!= prevposY){
@@ -2162,7 +2181,7 @@ int main( int argc, char* args[] )
 				
 					//Update screen
 					SDL_RenderPresent( gRenderer );
-					
+
 					}
 					cout<<play<<endl;
 				}
