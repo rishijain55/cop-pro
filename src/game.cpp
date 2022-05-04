@@ -1802,10 +1802,10 @@ bool CheckCaught(){
 		playerScore.changeHappiness(-1);
 		player.changePos(7200,1380);
 	}
-	if(player.getPosX()>=dog1.getPosX()&& player.getPosX()<dog1.getPosX()+mapTileSize/2 && player.getPosY()>=dog1.getPosY() && player.getPosY()<dog1.getPosY()+mapTileSize/2 ){
+	if(player.getPosX()>=dog1.getPosX()-mapTileSize&& player.getPosX()<dog1.getPosX()+mapTileSize*2 && player.getPosY()>=dog1.getPosY()-mapTileSize && player.getPosY()<dog1.getPosY()+mapTileSize*2 ){
 		caught=true;
 		playerScore.changeHealth(-10);
-		player.changePos(7200,1380);
+		player.changePos(4800,2040);
 	}
 
 	return caught;
@@ -2075,6 +2075,7 @@ int main( int argc, char* args[] )
 						professor1.render(camera.x,camera.y);
 						dog1.render(camera.x,camera.y);
 						drawTexture(professor1.getPosX()-3*mapTileSize-camera.x,professor1.getPosY()-5*mapTileSize/2-camera.y,(mapTileSize*13)/2,mapTileSize*13/2,255,255,255,50);
+						drawTexture(dog1.getPosX()-mapTileSize-camera.x,dog1.getPosY()-mapTileSize-camera.y,mapTileSize*3,mapTileSize*3,255,255,255,50);
 						SDL_Color white = {255,255,255,255};
 						
 						gYuluStandRectTexture.set(240,120);
