@@ -264,6 +264,40 @@ class Yulu
 		
 };
 
+class Professor
+{
+    public:
+        //The dimensions of the dot
+        int PROFESSOR_WIDTH = 30;
+        int PROFESSOR_HEIGHT = 60;
+
+        //Maximum axis velocity of the dot
+        static const int PROFESSOR_VEL = 30;
+
+        //Initializes the variables
+        Professor();
+
+
+		void set(int w, int h);
+		void changePos(int x,int y);
+        //Moves the dot
+        void move();
+        //Position accessors
+        int getPosX();
+        int getPosY();
+        //Shows the dot on the screen
+        void render(int camX,int camY,SDL_Rect* clip = NULL);
+		void reset();
+		bool collided();
+
+    private:
+        //The X and Y offsets of the dot
+        int mPosX, mPosY;
+        //The velocity of the dot
+		int dir;
+		
+};
+
 class ScoreCard
 {
 	public:
@@ -304,8 +338,10 @@ LTexture gYuluSheetTexture;
 LTexture gYuluStandRectTexture;
 LTexture gYuluStandSqTexture;
 LTexture ghelpsectionbg;
+LTexture gProfessorTexture;
 Player player;
 Yulu yulu;
+Professor professor1;
 LTexture gPlayBefore;
 LTexture gPlayHover;
 LTexture gPlayDisplay;
@@ -325,6 +361,7 @@ int play = 2;
 bool wasPlayerMoving = false;
 bool wasYuluMoving = false;
 int frame =4;
+int professorFrame =0;
 int countFrame =0;
 int direction =-1;
 
@@ -654,6 +691,115 @@ bool Player :: collided()
 	return collided;
 	
 }
+
+Professor::Professor()
+{
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+	dir =1;
+}
+
+void Professor:: reset()
+{
+
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+	dir =1;
+
+}
+void Professor:: changePos(int x,int y)
+{
+
+    //Initialize the offsets
+    mPosX = x;
+    mPosY = y;
+
+
+}
+
+void Professor :: set(int w, int h)
+{
+	PROFESSOR_WIDTH=w;
+	PROFESSOR_HEIGHT=h;
+}
+void Professor::move()
+{
+	if(dir==0){
+		mPosY-=PROFESSOR_VEL;
+		if(mPosY<0||mPosY+PROFESSOR_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+PROFESSOR_WIDTH>LEVEL_WIDTH){
+			mPosY+=PROFESSOR_VEL;
+			dir =1;			
+		}
+		else if(collided()){
+			mPosY+=PROFESSOR_VEL;
+			dir =1;
+		}
+	}
+	else if(dir==1){
+		mPosX+=PROFESSOR_VEL;
+		if(mPosY<0||mPosY+PROFESSOR_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+PROFESSOR_WIDTH>LEVEL_WIDTH){
+			mPosX-=PROFESSOR_VEL;
+			dir =2;		
+		}
+		else if(collided()){
+			mPosX-=PROFESSOR_VEL;
+			dir =2;
+		}
+	}
+	else if(dir==2){
+		mPosY+=PROFESSOR_VEL;
+		if(mPosY<0||mPosY+PROFESSOR_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+PROFESSOR_WIDTH>LEVEL_WIDTH){
+			mPosY-=PROFESSOR_VEL;
+			dir =3;	
+		}
+		else if(collided()){
+			mPosY-=PROFESSOR_VEL;
+			dir =3;
+		}
+	}
+	else if(dir==3){
+		mPosX-=PROFESSOR_VEL;
+		if(mPosY<0||mPosY+PROFESSOR_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+PROFESSOR_WIDTH>LEVEL_WIDTH){
+			mPosX+=PROFESSOR_VEL;
+			dir =0;
+		}
+		else if(collided()){
+			mPosX+=PROFESSOR_VEL;
+			dir =0;
+		}
+	}
+
+}
+void Professor::render( int camX, int camY, SDL_Rect* clip )
+{
+    //Show the dot relative to the camera
+    gProfessorTexture.render( mPosX-camX, mPosY-camY,clip );
+}
+
+int Professor :: getPosX()
+{
+	return mPosX;
+}
+int Professor :: getPosY()
+{
+	return mPosY;
+}
+
+bool Professor :: collided()
+{
+	bool collided = false;
+	// collided = collided||wallCollision(mPosX,mPosY);
+	collided = collided||(wallCollision(mPosX,mPosY+PROFESSOR_HEIGHT/2));
+	return collided;
+	
+}
+
 
 
 Yulu::Yulu()
@@ -1333,6 +1479,11 @@ bool loadMedia()
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
+	if( !gProfessorTexture.loadFromFile("../assets/woman1.jpg"))
+	{
+		printf( "Failed to load professor\n" );
+		success = false;
+	}
 	if( !gHeartTexture.loadFromFile("../assets/heart.png"))
 	{
 		printf( "Failed to load heart!\n" );
@@ -1493,6 +1644,16 @@ void close()
 	SDL_Quit();
 }
 
+bool CheckCaught(){
+	bool caught=false;
+	if(player.getPosX()>=professor1.getPosX()-3*mapTileSize && player.getPosX()<professor1.getPosX()+mapTileSize*7/2 && player.getPosY()>=professor1.getPosY()-3*mapTileSize && player.getPosY()<professor1.getPosY()+mapTileSize*4 ){
+		caught=true;
+		playerScore.changeHappiness(-1);
+		player.changePos(7200,1380);
+	}
+	return caught;
+}
+
 int main( int argc, char* args[] )
 {
 	//Start up SDL and create window
@@ -1551,10 +1712,11 @@ int main( int argc, char* args[] )
 			int curposY = 0;
 			int row,col;
 			bool onYulu =false;
-			
+			professor1.changePos(5940,1020);
 			//While application is running
 			while( !quit )
 			{	
+
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
@@ -1581,7 +1743,7 @@ int main( int argc, char* args[] )
 					yulu.move(camera.x,camera.y);	
 					player.changePos(yulu.getPosX(),yulu.getPosY());					
 					}
-					
+
 					quitButton.handle_events(e,2);
 
 				}
@@ -1601,33 +1763,7 @@ int main( int argc, char* args[] )
 				}
 
 					
-				  	// if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RSHIFT){
-					// 	if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){
-					// 	onYulu=!onYulu;
-					// 	frame =2;
-					// 	direction=-1;
-					// 	}
-					// }
-					// else
 
-					// if(!onYulu){
-					// player.handleEvent(e);
-					// player.move(camera.x,camera.y);
-					// yulu.changePos(player.getPosX(),player.getPosY());
-
-					// }
-					// else if(onYulu){
-					// yulu.handleEvent(e);
-					// yulu.move(camera.x,camera.y);	
-					// player.changePos(yulu.getPosX(),yulu.getPosY());					
-					// }
-
-					// helpus1.handle_events(e,0);
-					// playButton2.handle_events(e,1);
-					// playButton1.handle_events(e,1);
-					// quitButton.handle_events(e,2);
-					// back.handle_events(e,2);
-					//User , bool playOrNotrequests quit
 					if( e.type == SDL_QUIT )
 					{
 						quit = true;
@@ -1656,8 +1792,17 @@ int main( int argc, char* args[] )
 				//Only draw when not minimized
 				if( !gWindow.isMinimized() )
 				{
+					if(CheckCaught()){
+						onYulu=0;
+					};
 					if(play == 1)
 					{
+
+					if(professorFrame==3){
+						professor1.move();
+						
+					}
+						professorFrame= (professorFrame+1)%4;
 
 
 
@@ -1762,6 +1907,9 @@ int main( int argc, char* args[] )
 						
 						yulu.render(camera.x,camera.y,currentClip);							
 						}
+						gProfessorTexture.set(30,60);
+						professor1.render(camera.x,camera.y);
+						drawTexture(professor1.getPosX()-3*mapTileSize-camera.x,professor1.getPosY()-5*mapTileSize/2-camera.y,(mapTileSize*13)/2,mapTileSize*13/2,255,255,255,50);
 						SDL_Color white = {255,255,255,255};
 						
 						gYuluStandRectTexture.set(240,120);
