@@ -297,6 +297,39 @@ class Professor
 		int dir;
 		
 };
+class Dog
+{
+    public:
+        //The dimensions of the dot
+        int DOG_WIDTH = 60;
+        int DOG_HEIGHT = 60;
+
+        //Maximum axis velocity of the dot
+        static const int DOG_VEL = 30;
+
+        //Initializes the variables
+        Dog();
+
+
+		void set(int w, int h);
+		void changePos(int x,int y);
+        //Moves the dot
+        void move();
+        //Position accessors
+        int getPosX();
+        int getPosY();
+        //Shows the dot on the screen
+        void render(int camX,int camY,SDL_Rect* clip = NULL);
+		void reset();
+		bool collided();
+
+    private:
+        //The X and Y offsets of the dot
+        int mPosX, mPosY;
+        //The velocity of the dot
+		int dir;
+		
+};
 
 class ScoreCard
 {
@@ -339,8 +372,10 @@ LTexture gYuluStandRectTexture;
 LTexture gYuluStandSqTexture;
 LTexture ghelpsectionbg;
 LTexture gProfessorTexture;
+LTexture gDogTexture;
 Player player;
 Yulu yulu;
+Dog dog1;
 Professor professor1;
 LTexture gPlayBefore;
 LTexture gPlayHover;
@@ -362,6 +397,7 @@ bool wasPlayerMoving = false;
 bool wasYuluMoving = false;
 int frame =4;
 int professorFrame =0;
+int DogFrame =0;
 int countFrame =0;
 int direction =-1;
 
@@ -796,6 +832,116 @@ bool Professor :: collided()
 	bool collided = false;
 	// collided = collided||wallCollision(mPosX,mPosY);
 	collided = collided||(wallCollision(mPosX,mPosY+PROFESSOR_HEIGHT/2));
+	return collided;
+	
+}
+Dog::Dog()
+{
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+	dir =1;
+}
+
+void Dog:: reset()
+{
+
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+	dir =1;
+
+}
+void Dog:: changePos(int x,int y)
+{
+
+    //Initialize the offsets
+    mPosX = x;
+    mPosY = y;
+
+
+}
+
+void Dog :: set(int w, int h)
+{
+	DOG_WIDTH=w;
+	DOG_HEIGHT=h;
+}
+void Dog::move()
+{
+	if(dir==0){
+		mPosY-=DOG_VEL;
+		if(mPosY<0||mPosY+DOG_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+DOG_WIDTH>LEVEL_WIDTH){
+			mPosY+=DOG_VEL;
+			dir =1;			
+		}
+		else if(collided()){
+			mPosY+=DOG_VEL;
+			dir =1;
+		}
+	}
+	else if(dir==1){
+		mPosX+=DOG_VEL;
+		if(mPosY<0||mPosY+DOG_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+DOG_WIDTH>LEVEL_WIDTH){
+			mPosX-=DOG_VEL;
+			dir =2;		
+		}
+		else if(collided()){
+			mPosX-=DOG_VEL;
+			dir =2;
+		}
+	}
+	else if(dir==2){
+		mPosY+=DOG_VEL;
+		if(mPosY<0||mPosY+DOG_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+DOG_WIDTH>LEVEL_WIDTH){
+			mPosY-=DOG_VEL;
+			dir =3;	
+		}
+		else if(collided()){
+			mPosY-=DOG_VEL;
+			dir =3;
+		}
+	}
+	else if(dir==3){
+		mPosX-=DOG_VEL;
+		if(mPosY<0||mPosY+DOG_HEIGHT>LEVEL_HEIGHT|| mPosX<0||mPosX+DOG_WIDTH>LEVEL_WIDTH){
+			mPosX+=DOG_VEL;
+			dir =0;
+		}
+		else if(collided()){
+			mPosX+=DOG_VEL;
+			dir =0;
+		}
+	}
+
+}
+void Dog::render( int camX, int camY, SDL_Rect* clip )
+{
+    //Show the dot relative to the camera
+    gDogTexture.render( mPosX-camX, mPosY-camY,clip );
+}
+
+int Dog :: getPosX()
+{
+	return mPosX;
+}
+int Dog :: getPosY()
+{
+	return mPosY;
+}
+
+bool Dog :: collided()
+{
+	bool collided = false;
+	// collided = collided||wallCollision(mPosX,mPosY);
+	collided = collided||(wallCollision(mPosX,mPosY));
+	collided = collided||(wallCollision(mPosX+DOG_WIDTH/2,mPosY+DOG_HEIGHT/2));
+	collided = collided||(wallCollision(mPosX,mPosY+DOG_HEIGHT/2));
+	collided = collided||(wallCollision(mPosX+DOG_WIDTH/2,mPosY));
 	return collided;
 	
 }
@@ -1484,6 +1630,11 @@ bool loadMedia()
 		printf( "Failed to load professor\n" );
 		success = false;
 	}
+	if( !gDogTexture.loadFromFile("../assets/dog1.png"))
+	{
+		printf( "Failed to load dog\n" );
+		success = false;
+	}
 	if( !gHeartTexture.loadFromFile("../assets/heart.png"))
 	{
 		printf( "Failed to load heart!\n" );
@@ -1651,6 +1802,12 @@ bool CheckCaught(){
 		playerScore.changeHappiness(-1);
 		player.changePos(7200,1380);
 	}
+	if(player.getPosX()>=dog1.getPosX()&& player.getPosX()<dog1.getPosX()+mapTileSize/2 && player.getPosY()>=dog1.getPosY() && player.getPosY()<dog1.getPosY()+mapTileSize/2 ){
+		caught=true;
+		playerScore.changeHealth(-10);
+		player.changePos(7200,1380);
+	}
+
 	return caught;
 }
 
@@ -1713,6 +1870,7 @@ int main( int argc, char* args[] )
 			int row,col;
 			bool onYulu =false;
 			professor1.changePos(5940,1020);
+			dog1.changePos(1020,720);
 			//While application is running
 			while( !quit )
 			{	
@@ -1803,6 +1961,11 @@ int main( int argc, char* args[] )
 						
 					}
 						professorFrame= (professorFrame+1)%4;
+					if(DogFrame==3){
+						dog1.move();
+						
+					}
+						DogFrame= (DogFrame+1)%4;
 
 
 
@@ -1908,7 +2071,9 @@ int main( int argc, char* args[] )
 						yulu.render(camera.x,camera.y,currentClip);							
 						}
 						gProfessorTexture.set(30,60);
+						gDogTexture.set(60,60);
 						professor1.render(camera.x,camera.y);
+						dog1.render(camera.x,camera.y);
 						drawTexture(professor1.getPosX()-3*mapTileSize-camera.x,professor1.getPosY()-5*mapTileSize/2-camera.y,(mapTileSize*13)/2,mapTileSize*13/2,255,255,255,50);
 						SDL_Color white = {255,255,255,255};
 						
