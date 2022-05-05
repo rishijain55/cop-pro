@@ -6,6 +6,18 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+
+
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#define PORT 8080
+#include <arpa/inet.h>
+
+
 using namespace std;
 
 //Screen dimension constants
@@ -386,7 +398,8 @@ LTexture gProfessorTexture;
 LTexture gDogTexture;
 LTexture dogTextTexture;
 LTexture profTextTexture;
-Player player;
+Player player1;
+Player player2;
 Yulu yulu;
 Dog dog1;
 Professor professor1;
@@ -1513,7 +1526,7 @@ void LWindow::handleEvent( SDL_Event& e )
 		if( updateCaption )
 		{
 			std::stringstream caption;
-			caption << "SDL Tutorial - MouseFocus:" << ( ( mMouseFocus ) ? "On" : "Off" ) << " KeyboardFocus:" << ( ( mKeyboardFocus ) ? "On" : "Off" );
+			caption << "MAZE-GAME " << ( ( mMouseFocus ) ? "PLAY" : "PLAY" ) << " -|- " << ( ( mKeyboardFocus ) ? " multiplayer" : " multiplayer" );
 			SDL_SetWindowTitle( mWindow, caption.str().c_str() );
 		}
 	}
@@ -1648,7 +1661,7 @@ class Button
 	Button( int x, int y, int w, int h, string beforeButton, string afterButton );
 	void set(int x, int y, int w, int h);
     //Handles events and set the button's sprite region
-    void handle_events(SDL_Event &event, int playOrNot);
+    int handle_events(SDL_Event &event, int playOrNot, int server, int beforegame);
     
     //Shows the button on the screen
     void show();
@@ -1681,7 +1694,7 @@ void Button::set( int x, int y, int w, int h )
     
 }
 
-void Button::handle_events(SDL_Event &event, int playOrNot)
+int Button::handle_events(SDL_Event &event, int playOrNot, int server, int beforegame)
 {
     //The mouse offsets
     int x = 0, y = 0;
@@ -1722,8 +1735,17 @@ void Button::handle_events(SDL_Event &event, int playOrNot)
             {
                 //Set the button sprite
                 play = playOrNot;
+				if(beforegame == 1){
+					if(server == 1){
+						return 9;
+					}
+					if(server == 0){
+						return 10;
+					}
+				}
             }
         }
+		return 0;
     }
 }
 void Button::show()
@@ -1963,7 +1985,7 @@ void close()
 	SDL_Quit();
 }
 
-bool CheckCaught(){
+bool CheckCaught(Player player){
 	bool caught=false;
 	SDL_Color white ={255,255,255,255};
 	if(player.getPosX()>=professor1.getPosX()-3*mapTileSize && player.getPosX()<professor1.getPosX()+mapTileSize*7/2 && player.getPosY()>=professor1.getPosY()-3*mapTileSize && player.getPosY()<professor1.getPosY()+mapTileSize*4 ){
@@ -1986,8 +2008,17 @@ bool CheckCaught(){
 	return caught;
 }
 
+bool intchker(char a){
+	if(a>=48 && a<=57){
+		return true;
+	}
+	return false;
+}
+
 int main( int argc, char* args[] )
-{
+{	int mainchk  = 0;
+
+	
 	//Start up SDL and create window
 	if( !init() )
 	{
@@ -2046,6 +2077,285 @@ int main( int argc, char* args[] )
 			bool onYulu =false;
 			professor1.changePos(5940,1020);
 			dog1.changePos(2100,2190);
+
+			while( !quit )
+			{	
+
+				//Handle events on queue
+				while( SDL_PollEvent( &e ) != 0 )
+				{
+			
+				 if( play== 0 )
+				{
+					back.handle_events(e,2,2,2);
+
+				}
+				else if(play==2)
+				{
+					
+					
+					helpus1.handle_events(e,0,1,0);
+					
+
+					 if(playButton1.handle_events(e,1,0,1) == 10){
+						mainchk = 10;
+						
+						break;
+					}
+					
+
+					if(playButton2.handle_events(e,1,1,1) == 9) {
+						 mainchk = 9;
+					
+						 break;
+					}
+
+
+				}
+
+					
+
+					if( e.type == SDL_QUIT )
+					{
+						quit = true;
+					}
+					// //for handing keys for temp
+				  	// if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RCTRL){
+					// 		row = mapElement(curposX,curposY)/xNoSquares;
+					// 		col = mapElement(curposX,curposY)%xNoSquares;
+					// 		temp[row][col]=0;							
+					// }
+					// else if(e.type==SDL_KEYDOWN &&e.key.keysym.sym == SDLK_LCTRL){
+					// 	if(eraseMark==false){
+					// 		eraseMark=true;
+					// 	}
+					// 	else{
+					// 		eraseMark= false;
+					// 	}
+					// }
+					//
+							// prevposX=curposX;
+							// prevposY=curposY;
+					//Handle window events
+					gWindow.handleEvent( e );
+				}
+
+				//Only draw when not minimized
+				if (mainchk == 9 || mainchk == 10) {break;}
+				else{
+
+				if( !gWindow.isMinimized() )
+				{
+
+					
+				    if(play == 0){
+					//help screen
+
+
+
+					ghelpsectionbg.set(gWindow.getWidth(),gWindow.getHeight());
+					ghelpsectionbg.render(0,0);
+
+					back.set( (gWindow.getWidth()*90)/100-gWindow.getWidth()/10, (gWindow.getHeight()*995)/1000-gWindow.getHeight()/10, (gWindow.getWidth()*30)/100, (gWindow.getHeight()*5)/100 );
+					back.show();
+
+					SDL_RenderPresent( gRenderer );
+					}
+					else if(play ==2){
+					//start screen
+
+
+
+
+					player1.changePos(30,0);
+					player2.changePos(70,0);
+					yulu.reset();
+					professor1.reset();
+					dog1.reset();
+					playerScore.reset();
+					// playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
+					playButton2.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*69)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
+					playButton1.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*79)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
+					helpus1.set( (gWindow.getWidth()*90)/100-gWindow.getWidth()/10, (gWindow.getHeight()*995)/1000-gWindow.getHeight()/10, (gWindow.getWidth()*30)/100, (gWindow.getHeight()*5)/100 );
+
+
+					SDL_Color textColor = { 255, 255, 255, 255 };
+					string newGame = "New Game";
+					string quit = "Quit";
+					quitText.loadFromRenderedText(quit, textColor);
+					gBackgroundStartScreenTexture.set(gWindow.getWidth(),gWindow.getHeight());
+					gBackgroundStartScreenTexture.render(0,0);
+					
+					// playButton.show();
+					playButton2.show();
+					playButton1.show();
+					helpus1.show();
+
+				
+					//Update screen
+					SDL_RenderPresent( gRenderer );
+
+					}
+				
+				}
+				}
+			}
+
+				cout << mainchk;
+
+
+
+
+	int server_fd, new_socketserv, valreadserv;
+    struct sockaddr_in addressserv;
+    int optserv = 1;
+    int addrlenserv = sizeof(addressserv);
+    char bufferserv[1024] = { 0 };
+    char* helloserv = "Hello from server";
+
+ 
+			
+			if(mainchk == 9)
+			
+			
+			 {
+				
+    // Creating socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0))
+        == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+ 
+    // Forcefully attaching socket to the port 8080
+    if (setsockopt(server_fd, SOL_SOCKET,
+                   SO_REUSEADDR | SO_REUSEPORT, &optserv,
+                   sizeof(optserv))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+    addressserv.sin_family = AF_INET;
+    addressserv.sin_addr.s_addr = INADDR_ANY;
+    addressserv.sin_port = htons(PORT);
+ 
+    // Forcefully attaching socket to the port 8080
+    if (bind(server_fd, (struct sockaddr*)&addressserv,
+             sizeof(addressserv))
+        < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+    if (listen(server_fd, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+    if ((new_socketserv
+         = accept(server_fd, (struct sockaddr*)&addressserv,
+                  (socklen_t*)&addrlenserv))
+        < 0) {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+    valreadserv = read(new_socketserv, bufferserv, 1024);
+    printf("%s\n", bufferserv);
+    send(new_socketserv, helloserv, strlen(helloserv), 0);
+    printf("Hello message sent\n");
+			 }
+
+
+
+
+
+				 int sockcl = 0, valreadcl;
+    struct sockaddr_in serv_addrcl;
+    char* hellocl = "Hello from client";
+    char buffercl[1024] = { 0 };
+			
+
+			if(mainchk == 10)
+			
+			
+			
+			 {
+
+
+				 
+    if ((sockcl = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n Socket creation error \n");
+        return -1;
+    }
+ 
+    serv_addrcl.sin_family = AF_INET;
+    serv_addrcl.sin_port = htons(PORT);
+ 
+    // Convert IPv4 and IPv6 addresses from text to binary
+    // form
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addrcl.sin_addr)
+        <= 0) {
+        printf(
+            "\nInvalid address/ Address not supported \n");
+        return -1;
+    }
+ 
+    if (connect(sockcl, (struct sockaddr*)&serv_addrcl,
+                sizeof(serv_addrcl))
+        < 0) {
+        printf("\nConnection Failed \n");
+        return -1;
+    }
+    send(sockcl, hellocl, strlen(hellocl), 0);
+    printf("Hello message sent\n");
+    valreadcl = read(sockcl, buffercl, 1024);
+    printf("%s\n", buffercl);
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+           eraseMark = false;
+			//Event handler
+			// SDL_Event e;
+			 camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
+			 bg = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
+			 prevposX = 0;
+			 prevposY = 0;
+			 curposX = 0;
+			 curposY = 0;
+			// i row,col;
+		 onYulu =false;
+			professor1.changePos(5940,1020);
+			dog1.changePos(2100,2190);
+
+
+
+
+
+
+
+
+
 			//While application is running
 			while( !quit )
 			{	
@@ -2059,41 +2369,67 @@ int main( int argc, char* args[] )
 				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RSHIFT){
 						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){
 						onYulu=!onYulu;
-						player.frame =4;
+						if(mainchk == 9){
+						player1.frame =4;
+						player1.dir=-1;
+						}
+						if(mainchk == 10){
+						player2.frame == 4;
+						player2.dir = -1;
+						}
+
+
 						yulu.frame=1;
-						player.dir=-1;
+						
 						yulu.dir=-1;
 						}
 					}
 					else
 
 					if(!onYulu){
-					player.handleEvent(e);
-					player.move(camera.x,camera.y);
-					yulu.changePos(player.getPosX(),player.getPosY());
+					if(mainchk == 9){	
+					player1.handleEvent(e);
+					player1.move(camera.x,camera.y);
+					yulu.changePos(player1.getPosX(),player1.getPosY());
+					}
+					if(mainchk == 10){
+					player2.handleEvent(e);
+					player2.move(camera.x,camera.y);
+					yulu.changePos(player2.getPosX(),player2.getPosY());
+
+					}
 
 					}
 					else if(onYulu){
+
+						if(mainchk == 9){
 					yulu.handleEvent(e);
 					yulu.move(camera.x,camera.y);	
-					player.changePos(yulu.getPosX(),yulu.getPosY());					
+					player1.changePos(yulu.getPosX(),yulu.getPosY());
+						}
+						if(mainchk == 10){
+								yulu.handleEvent(e);
+					            yulu.move(camera.x,camera.y);	
+					            player1.changePos(yulu.getPosX(),yulu.getPosY());
+
+						}					
 					}
 
-					quitButton.handle_events(e,2);
+					quitButton.handle_events(e,2,2,2);
 
 				}
 				else if( play== 0 )
 				{
-					back.handle_events(e,2);
+					back.handle_events(e,2,2,2);
 
 				}
 				else if(play==2)
 				{
 					
 					
-					helpus1.handle_events(e,0);
-					playButton2.handle_events(e,1);
-					playButton1.handle_events(e,1);
+					helpus1.handle_events(e,0,2,2);
+					playButton2.handle_events(e,1,2,2);
+					playButton1.handle_events(e,1,2,2);
 
 				}
 
@@ -2131,6 +2467,63 @@ int main( int argc, char* args[] )
 					if(play == 1)
 					{
 
+						 if(mainchk == 9){
+						// MyServer->send(std::to_string(player1.getPosX()) + " " + std::to_string(player1.getPosY()));
+							// MyServer->send("hi");
+							string hellohii = to_string(player1.getPosX());
+							helloserv = new char[hellohii.length()];
+							for (int i = 0; i < hellohii.length(); i++)
+							{
+								/* code */
+								helloserv[i] = hellohii.at(i);
+								
+							}
+							string positionX = "";
+							
+							 if(send(new_socketserv, helloserv, strlen(helloserv), 0)>=0){}
+							  valreadserv = read(new_socketserv, bufferserv, 1024);
+                            //  printf("%s\n", bufferserv);
+							
+							for(int i = 0; i < 5; i++){
+								if(intchker(bufferserv[i])){
+									positionX.push_back(bufferserv[i]);
+								}
+
+							}
+							
+							player2.changePos(std::stoi(positionX), 0);
+							cout << positionX << endl;
+
+
+						}
+						if(mainchk == 10){
+
+								string hellohiicl = to_string(player2.getPosX());
+							hellocl = new char[hellohiicl.length()];
+							for (int i = 0; i < hellohiicl.length(); i++)
+							{
+								/* code */
+								hellocl[i] = hellohiicl.at(i);
+								
+							}
+							 send(sockcl, hellocl, strlen(hellocl), 0);
+							 valreadcl = read(sockcl, buffercl, 1024);
+                            //  printf("%s\n", buffercl);
+							string positionXofServer = "";
+							for (int i = 0; i < 5; i++)
+							{
+								/* code */
+								if(intchker(buffercl[i])){
+									positionXofServer.push_back(buffercl[i]);
+								}
+							}
+							player1.changePos(std::stoi(positionXofServer),0);
+							cout << positionXofServer << endl;
+
+
+						}
+					
+
 					if(professorFrame==3){
 						professor1.move();
 						
@@ -2147,10 +2540,19 @@ int main( int argc, char* args[] )
 							// prevposX=curposX;
 							// prevposY=curposY;
 						if(!onYulu){
-							camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
-							camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+							if(mainchk == 9){
+							camera.x = ( player1.getPosX() + player1.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+							camera.y = ( player1.getPosY() + player1.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
 							camera.w = gWindow.getWidth();
 							camera.h = gWindow.getHeight();
+							}
+							else{
+							camera.x = ( player2.getPosX() + player1.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+							camera.y = ( player2.getPosY() + player1.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+							camera.w = gWindow.getWidth();
+							camera.h = gWindow.getHeight();
+
+							}
 
 							//Keep the camera in bounds
 							if( camera.x < 0 )
@@ -2203,9 +2605,17 @@ int main( int argc, char* args[] )
 						gBackgroundPlayTexture.render(0,0,&bg);
 
 						// //for marking where temp is set to 1
-						curposX = player.getPosX();
-						curposY = player.getPosY();
-						cout<<curposX<<" "<<curposY<<endl;
+						if(mainchk == 9){
+						curposX = player1.getPosX();
+						curposY = player1.getPosY();
+						// cout<<curposX<<" "<<curposY<<endl;
+						}
+						else if(mainchk == 10){
+						curposX = player2.getPosX();
+						curposY = player2.getPosY();
+
+
+						}
 						// row = mapElement(curposX,curposY)/xNoSquares;
 						// col = mapElement(curposX,curposY)%xNoSquares;
 						// cout<<row<<" "<<col<<endl;
@@ -2224,12 +2634,19 @@ int main( int argc, char* args[] )
 						}
 						
 						if(!onYulu){
-						SDL_Rect* currentClip = &gSpriteClips[player.frame];
+
+						SDL_Rect* currentClip = &gSpriteClips[player1.frame];
 						gSpriteSheetTexture.set(30,60);
-						player.set(30,60);
+						if(mainchk == 9){
+						player1.set(30,60);
+						}
+						if(mainchk == 10){
+							player2.set(30,60);
+						}
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
-						player.render(camera.x,camera.y,currentClip);
+						player1.render(camera.x,camera.y,currentClip);
+						player2.render(camera.x,camera.y,currentClip);
 						}
 						else{
 						SDL_Rect* currentClip = &gYuluClips[yulu.frame];
@@ -2271,7 +2688,14 @@ int main( int argc, char* args[] )
 						}
 						playerScore.render();
 						quitButton.show();
-						bool nishant = CheckCaught();
+						bool nishant;
+						if(mainchk == 9){
+						nishant = CheckCaught(player1);
+						}
+						if(mainchk == 10){
+							nishant = CheckCaught(player2);
+						}
+
 						if(nishant){
 							dogTextTexture.loadFromRenderedText("Ahhhh......",white);
 							dogTextTexture.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()-yuluText.getHeight()*4);
@@ -2322,7 +2746,8 @@ int main( int argc, char* args[] )
 
 
 
-					player.reset();
+					player1.changePos(50,10);
+					player2.changePos(20,10);
 					yulu.reset();
 					professor1.reset();
 					dog1.reset();
@@ -2350,7 +2775,7 @@ int main( int argc, char* args[] )
 					SDL_RenderPresent( gRenderer );
 
 					}
-					cout<<play<<endl;
+				
 				}
 			}
 		}
