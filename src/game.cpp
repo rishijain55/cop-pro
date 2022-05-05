@@ -198,6 +198,9 @@ class Player
         //The dimensions of the dot
         int PLAYER_WIDTH = 30;
         int PLAYER_HEIGHT = 60;
+		int frame =2;
+		int dir =-1;
+		bool wasPlayerMoving = false;
 
         //Maximum axis velocity of the dot
         static const int PLAYER_VEL = 30;
@@ -213,6 +216,7 @@ class Player
         //Moves the dot
         void move(int camX, int camY);
 		void changePos(int x,int y);
+		void changeFrame( int dir );
         //Position accessors
         int getPosX();
         int getPosY();
@@ -234,7 +238,9 @@ class Yulu
         //The dimensions of the dot
         int YULU_WIDTH = 30;
         int YULU_HEIGHT = 60;
-
+		int frame = 1;
+		int dir=-1;
+		bool wasYuluMoving=false;
         //Maximum axis velocity of the dot
         static const int PLAYER_VEL = 30;
 
@@ -243,7 +249,7 @@ class Yulu
 
         //Takes key presses and adjusts the dot's velocity
         void handleEvent( SDL_Event& e );
-
+		void changeFrame( int dir );
 		void set(int w, int h);
 		void changePos(int x,int y);
         //Moves the dot
@@ -267,6 +273,7 @@ class Yulu
 class Professor
 {
     public:
+		int frame=2;
         //The dimensions of the dot
         int PROFESSOR_WIDTH = 30;
         int PROFESSOR_HEIGHT = 60;
@@ -280,6 +287,7 @@ class Professor
 
 		void set(int w, int h);
 		void changePos(int x,int y);
+		void changeFrame( int dir );
         //Moves the dot
         void move();
         //Position accessors
@@ -301,6 +309,7 @@ class Dog
 {
     public:
         //The dimensions of the dot
+		int frame =2;
         int DOG_WIDTH = 60;
         int DOG_HEIGHT = 60;
 
@@ -313,6 +322,7 @@ class Dog
 
 		void set(int w, int h);
 		void changePos(int x,int y);
+		void changeFrame( int dir );
         //Moves the dot
         void move();
         //Position accessors
@@ -342,6 +352,7 @@ class ScoreCard
 	void changeMoney(int offset);
 	void changeHappiness(int offset);
 	void render();
+	void reset();
 	private:
 	int health,money,happiness;
 };
@@ -395,13 +406,9 @@ int yNoSquares =80;
 int playerHoldMoveSpeed=4;
 int yuluHoldMoveSpeed=1;
 int play = 2;
-bool wasPlayerMoving = false;
-bool wasYuluMoving = false;
-int frame =4;
 int professorFrame =0;
 int DogFrame =0;
 int countFrame =0;
-int direction =-1;
 
 
 const int WALKING_ANIMATION_FRAMES = 8;
@@ -409,6 +416,9 @@ SDL_Rect gSpriteClips[ WALKING_ANIMATION_FRAMES ];
 
 const int YULU_ANIMATION_FRAMES = 4;
 SDL_Rect gYuluClips[ YULU_ANIMATION_FRAMES ];
+
+const int DOG_ANIMATION_FRAMES = 8;
+SDL_Rect gDogClips[ DOG_ANIMATION_FRAMES ];
 
 TTF_Font *gFont = NULL;
 
@@ -452,7 +462,12 @@ ScoreCard :: ScoreCard()
 	health=100;
 
 }
-
+void ScoreCard ::reset()
+{
+	money=100;
+	happiness=5;
+	health=100;	
+}
 void ScoreCard::changeHealth(int offset)
 {
 	health+=offset;
@@ -521,6 +536,8 @@ Player::Player()
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
+	frame =4;
+	dir =-1;
 }
 void Player:: reset()
 {
@@ -532,6 +549,8 @@ void Player:: reset()
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
+	frame=4;
+	dir =-1;
 
 }
 void Player:: changePos(int x,int y)
@@ -544,7 +563,7 @@ void Player:: changePos(int x,int y)
 
 }
 
-void changeFrame( int dir ){
+void Player:: changeFrame( int dir ){
 
 	if(dir ==0){
 		if(frame ==0){
@@ -593,26 +612,16 @@ void Player::handleEvent( SDL_Event& e )
         {
 
             case SDLK_UP: 
-				if(direction!=0){
-					wasPlayerMoving=false;
-					direction=0;
-				}
 				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(0);
 					wasPlayerMoving=true;
 					mVelY -= PLAYER_VEL;
 				}
-
 				countFrame= (countFrame+1)%playerHoldMoveSpeed;
-
-
 
 			break;
             case SDLK_DOWN:
-				if(direction!=2){
-					wasPlayerMoving=false;
-					direction=2;
-				}
+			
 				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(2);
 					wasPlayerMoving=true;
@@ -622,10 +631,7 @@ void Player::handleEvent( SDL_Event& e )
 
 			break;
             case SDLK_LEFT:
-				if(direction!=3){
-					wasPlayerMoving=false;
-					direction=3;
-				}
+			
 				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(3);
 					wasPlayerMoving=true;
@@ -635,10 +641,7 @@ void Player::handleEvent( SDL_Event& e )
 
 			break;
             case SDLK_RIGHT: 
-				if(direction!=1){
-					wasPlayerMoving=false;
-					direction=1;
-				}
+		
 				if(!wasPlayerMoving || countFrame==0){
 					changeFrame(1);
 					wasPlayerMoving=true;
@@ -732,23 +735,27 @@ bool Player :: collided()
 
 Professor::Professor()
 {
+
+
     //Initialize the offsets
-    mPosX = 0;
-    mPosY = 0;
+    mPosX = 5940;
+    mPosY = 1020;
 
     //Initialize the velocity
 	dir =1;
+	frame =4;
 }
 
 void Professor:: reset()
 {
 
     //Initialize the offsets
-    mPosX = 0;
-    mPosY = 0;
+    mPosX = 5940;
+    mPosY = 1020;
 
     //Initialize the velocity
 	dir =1;
+	frame =4;
 
 }
 void Professor:: changePos(int x,int y)
@@ -766,6 +773,47 @@ void Professor :: set(int w, int h)
 	PROFESSOR_WIDTH=w;
 	PROFESSOR_HEIGHT=h;
 }
+
+void Professor :: changeFrame(int dir)
+{
+
+	if(dir ==0){
+		if(frame ==0){
+			frame =1;
+		}
+		else{
+			frame = 0;
+		}
+	}
+	else if(dir ==1){
+		if(frame ==2){
+			frame =3;
+		}
+		else{
+			frame = 2;
+		}	
+	}
+	else if(dir ==2){
+		if(frame ==4){
+			frame =5;
+		}
+		else{
+			frame = 4;
+		}	
+	}
+	else if(dir ==3){
+		if(frame ==6){
+			frame =7;
+		}
+		else{
+			frame = 6;
+		}
+
+	}
+	else{}
+
+}
+
 void Professor::move()
 {
 	if(dir==0){
@@ -839,24 +887,26 @@ bool Professor :: collided()
 }
 Dog::Dog()
 {
+
     //Initialize the offsets
-    mPosX = 0;
-    mPosY = 0;
+    mPosX = 2100;
+    mPosY = 2190;
 
     //Initialize the velocity
 	dir =1;
+	frame=4;
 }
 
 void Dog:: reset()
 {
 
     //Initialize the offsets
-    mPosX = 0;
-    mPosY = 0;
+    mPosX = 2100;
+    mPosY = 2190;
 
     //Initialize the velocity
 	dir =1;
-
+	frame=4;
 }
 void Dog:: changePos(int x,int y)
 {
@@ -872,6 +922,45 @@ void Dog :: set(int w, int h)
 {
 	DOG_WIDTH=w;
 	DOG_HEIGHT=h;
+}
+void Dog :: changeFrame(int dir)
+{
+
+	if(dir ==0){
+		if(frame ==0){
+			frame =1;
+		}
+		else{
+			frame = 0;
+		}
+	}
+	else if(dir ==1){
+		if(frame ==2){
+			frame =3;
+		}
+		else{
+			frame = 2;
+		}	
+	}
+	else if(dir ==2){
+		if(frame ==4){
+			frame =5;
+		}
+		else{
+			frame = 4;
+		}	
+	}
+	else if(dir ==3){
+		if(frame ==6){
+			frame =7;
+		}
+		else{
+			frame = 6;
+		}
+
+	}
+	else{}
+
 }
 void Dog::move()
 {
@@ -919,6 +1008,7 @@ void Dog::move()
 			dir =0;
 		}
 	}
+	changeFrame(dir);
 
 }
 void Dog::render( int camX, int camY, SDL_Rect* clip )
@@ -959,6 +1049,8 @@ Yulu::Yulu()
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
+	dir =1;
+	frame=1;
 }
 void Yulu:: reset()
 {
@@ -971,6 +1063,9 @@ void Yulu:: reset()
     mVelX = 0;
     mVelY = 0;
 
+	dir =1;
+	frame=1;
+
 }
 void Yulu:: changePos(int x,int y)
 {
@@ -982,7 +1077,44 @@ void Yulu:: changePos(int x,int y)
 
 }
 
+void Yulu:: changeFrame( int dir ){
 
+	if(dir ==0){
+		if(frame ==0){
+			frame =1;
+		}
+		else{
+			frame = 0;
+		}
+	}
+	else if(dir ==1){
+		if(frame ==2){
+			frame =3;
+		}
+		else{
+			frame = 2;
+		}	
+	}
+	else if(dir ==2){
+		if(frame ==4){
+			frame =5;
+		}
+		else{
+			frame = 4;
+		}	
+	}
+	else if(dir ==3){
+		if(frame ==6){
+			frame =7;
+		}
+		else{
+			frame = 6;
+		}
+
+	}
+	else{}
+
+}
 
 void Yulu::handleEvent( SDL_Event& e )
 {
@@ -994,14 +1126,12 @@ void Yulu::handleEvent( SDL_Event& e )
         {
 
             case SDLK_UP: 
-				if(direction!=0){
 					wasYuluMoving=false;
-					direction=0;
-				}
+	
 				if(!wasYuluMoving || countFrame==0){
-					frame = direction;
 					wasYuluMoving=true;
 					mVelY -= PLAYER_VEL;
+					frame = 0;
 				}
 
 				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
@@ -1010,40 +1140,31 @@ void Yulu::handleEvent( SDL_Event& e )
 
 			break;
             case SDLK_DOWN:
-				if(direction!=2){
 					wasYuluMoving=false;
-					direction=2;
-				}
 				if(!wasYuluMoving || countFrame==0){
-					frame=direction;
 					wasYuluMoving=true;
 					mVelY += PLAYER_VEL;
+					frame =2;
 				}
 				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
 
 			break;
             case SDLK_LEFT:
-				if(direction!=3){
 					wasYuluMoving=false;
-					direction=3;
-				}
 				if(!wasYuluMoving || countFrame==0){
-					frame=direction;
 					wasYuluMoving=true;
 					mVelX -= PLAYER_VEL;
+					frame =3;
 				}
 				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
 
 			break;
             case SDLK_RIGHT: 
-				if(direction!=1){
 					wasYuluMoving=false;
-					direction=1;
-				}
 				if(!wasYuluMoving || countFrame==0){
-					frame=direction;
 					wasYuluMoving=true;
 					mVelX += PLAYER_VEL;
+					frame =1;
 				}
 				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
 
@@ -1632,11 +1753,7 @@ bool loadMedia()
 		printf( "Failed to load professor\n" );
 		success = false;
 	}
-	if( !gDogTexture.loadFromFile("../assets/dog1.png"))
-	{
-		printf( "Failed to load dog\n" );
-		success = false;
-	}
+
 	if( !gHeartTexture.loadFromFile("../assets/heart.png"))
 	{
 		printf( "Failed to load heart!\n" );
@@ -1732,6 +1849,55 @@ bool loadMedia()
         gSpriteClips[ 7 ].y =   237;
         gSpriteClips[ 7 ].w =  135;
         gSpriteClips[ 7 ].h = 184.5;
+
+    }
+    if( !gDogTexture.loadFromFile( "../assets/dogSheet.png" ) )
+    {
+        printf( "Failed to load walking animation texture!\n" );
+        success = false;
+    }
+    else
+    {
+        //Set sprite clips
+        gDogClips[ 0 ].x =   0;
+        gDogClips[ 0 ].y =   0;
+        gDogClips[ 0 ].w =  200;
+        gDogClips[ 0 ].h = 200;
+
+        gDogClips[ 1 ].x =  200;
+        gDogClips[ 1 ].y =  0;
+        gDogClips[ 1 ].w =  200;
+        gDogClips[ 1 ].h = 200;
+        
+        gDogClips[ 2 ].x = 400;
+        gDogClips[ 2 ].y =   400;
+        gDogClips[ 2 ].w = 200;
+        gDogClips[ 2 ].h = 200;
+
+        gDogClips[ 3 ].x = 600;
+        gDogClips[ 3 ].y =   400;
+        gDogClips[ 3 ].w =  200;
+        gDogClips[ 3 ].h = 200;
+
+        gDogClips[ 4 ].x = 400;
+        gDogClips[ 4 ].y =   0;
+        gDogClips[ 4 ].w =  200;
+        gDogClips[ 4 ].h = 200;
+
+        gDogClips[ 5 ].x = 600;
+        gDogClips[ 5 ].y =   0;
+        gDogClips[ 5 ].w =  200;
+        gDogClips[ 5 ].h = 200;
+
+        gDogClips[ 6 ].x = 0;
+        gDogClips[ 6 ].y =   400;
+        gDogClips[ 6 ].w =  200;
+        gDogClips[ 6 ].h = 200;
+
+        gDogClips[ 7 ].x = 200;
+        gDogClips[ 7 ].y =   400;
+        gDogClips[ 7 ].w =  200;
+        gDogClips[ 7 ].h = 200;
 
     }
     if( !gYuluSheetTexture.loadFromFile( "../assets/bike.png" ) )
@@ -1879,7 +2045,7 @@ int main( int argc, char* args[] )
 			int row,col;
 			bool onYulu =false;
 			professor1.changePos(5940,1020);
-			dog1.changePos(1020,720);
+			dog1.changePos(2100,2190);
 			//While application is running
 			while( !quit )
 			{	
@@ -1893,8 +2059,10 @@ int main( int argc, char* args[] )
 				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RSHIFT){
 						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){
 						onYulu=!onYulu;
-						frame =2;
-						direction=-1;
+						player.frame =4;
+						yulu.frame=1;
+						player.dir=-1;
+						yulu.dir=-1;
 						}
 					}
 					else
@@ -1968,11 +2136,11 @@ int main( int argc, char* args[] )
 						
 					}
 						professorFrame= (professorFrame+1)%4;
-					if(DogFrame==1){
+					if(DogFrame==0){
 						dog1.move();
 						
 					}
-						DogFrame= (DogFrame+1)%2;
+						DogFrame= (DogFrame+1)%1;
 
 
 
@@ -2056,7 +2224,7 @@ int main( int argc, char* args[] )
 						}
 						
 						if(!onYulu){
-						SDL_Rect* currentClip = &gSpriteClips[frame];
+						SDL_Rect* currentClip = &gSpriteClips[player.frame];
 						gSpriteSheetTexture.set(30,60);
 						player.set(30,60);
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
@@ -2064,15 +2232,10 @@ int main( int argc, char* args[] )
 						player.render(camera.x,camera.y,currentClip);
 						}
 						else{
-						SDL_Rect* currentClip = &gYuluClips[frame];
-						if(direction==0|| direction==2){
+						SDL_Rect* currentClip = &gYuluClips[yulu.frame];
 						gYuluSheetTexture.set(60,60);
 						yulu.set(60,60);
-						}
-						else{
-						gYuluSheetTexture.set(60,60);
-						yulu.set(60,60);						
-						}
+
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
 						yulu.render(camera.x,camera.y,currentClip);							
@@ -2080,7 +2243,10 @@ int main( int argc, char* args[] )
 						gProfessorTexture.set(30,60);
 						gDogTexture.set(60,60);
 						professor1.render(camera.x,camera.y);
-						dog1.render(camera.x,camera.y);
+
+						SDL_Rect* DogClip = &gDogClips[dog1.frame];
+						dog1.render(camera.x,camera.y,DogClip);
+
 						drawTexture(professor1.getPosX()-3*mapTileSize-camera.x,professor1.getPosY()-5*mapTileSize/2-camera.y,(mapTileSize*13)/2,mapTileSize*13/2,255,255,255,50);
 						drawTexture(dog1.getPosX()-mapTileSize-camera.x,dog1.getPosY()-mapTileSize-camera.y,mapTileSize*3,mapTileSize*3,255,255,255,50);
 						SDL_Color white = {255,255,255,255};
@@ -2155,11 +2321,12 @@ int main( int argc, char* args[] )
 
 
 
-					frame =4;
-					camera.x =0;
-					camera.y =0;
+
 					player.reset();
-				
+					yulu.reset();
+					professor1.reset();
+					dog1.reset();
+					playerScore.reset();
 					// playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
 					playButton2.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*69)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
 					playButton1.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*79)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
