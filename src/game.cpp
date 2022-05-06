@@ -2008,12 +2008,81 @@ bool CheckCaught(Player player){
 	return caught;
 }
 
-bool intchker(char a){
+int intchker(char a){
 	if(a>=48 && a<=57){
-		return true;
+		return 2;
 	}
-	return false;
+	if(a=='+'){
+		return 1;
+	}
+	return 0;
 }
+
+
+
+char* datasend(int* arr, int noofdata){
+		int* list = new int[100];
+		for (int i = 0; i < noofdata; i++)
+		{
+			/* code */
+			list[i] = arr[i];
+
+		}
+		string sum = "";
+		for (int i = 0; i < noofdata; i++)
+		{
+			/* code */
+			sum += to_string(list[i]);
+			sum += "_";
+		}
+		int len = sum.length();
+		char* data = new char[len];
+
+		for (size_t i = 0; i < len; i++)
+		{
+			/* code */
+			data[i] = sum.at(i);
+			
+
+		}
+	
+		return data;
+		
+
+}
+
+
+int* datarecv(char* arr, int noofdata){
+	int* receiveddata = new int[noofdata];
+	int count = 0;
+	int itr = 0;
+	string s = "";
+	while(count < noofdata){
+		if(arr[itr] == '_'){
+			receiveddata[count] = std::stoi(s);
+			count++;
+			s = "";
+
+		}
+		else{
+			s.push_back(arr[itr]);
+
+		}
+
+		itr++;
+	
+
+	}
+
+	cout<<receiveddata[2]<<" frame sent"<<endl;
+	
+
+
+	return receiveddata;
+
+}
+
+
 
 int main( int argc, char* args[] )
 {	int mainchk  = 0;
@@ -2369,14 +2438,14 @@ int main( int argc, char* args[] )
 				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RSHIFT){
 						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){
 						onYulu=!onYulu;
-						if(mainchk == 9){
+						// if(mainchk == 9){
 						player1.frame =4;
 						player1.dir=-1;
-						}
-						if(mainchk == 10){
-						player2.frame == 4;
-						player2.dir = -1;
-						}
+						// }
+						// if(mainchk == 10){
+						// player2.frame == 4;
+						// player2.dir = -1;
+						// }
 
 
 						yulu.frame=1;
@@ -2387,17 +2456,17 @@ int main( int argc, char* args[] )
 					else
 
 					if(!onYulu){
-					if(mainchk == 9){	
+					// if(mainchk == 9){	
 					player1.handleEvent(e);
 					player1.move(camera.x,camera.y);
 					yulu.changePos(player1.getPosX(),player1.getPosY());
-					}
-					if(mainchk == 10){
-					player2.handleEvent(e);
-					player2.move(camera.x,camera.y);
-					yulu.changePos(player2.getPosX(),player2.getPosY());
+					// }
+					// if(mainchk == 10){
+					// player2.handleEvent(e);
+					// player2.move(camera.x,camera.y);
+					// yulu.changePos(player2.getPosX(),player2.getPosY());
 
-					}
+					// }
 
 					}
 					else if(onYulu){
@@ -2468,59 +2537,48 @@ int main( int argc, char* args[] )
 					{
 
 						 if(mainchk == 9){
-						// MyServer->send(std::to_string(player1.getPosX()) + " " + std::to_string(player1.getPosY()));
-							// MyServer->send("hi");
-							string hellohii = to_string(player1.getPosX());
-							helloserv = new char[hellohii.length()];
-							for (int i = 0; i < hellohii.length(); i++)
-							{
-								/* code */
-								helloserv[i] = hellohii.at(i);
-								
-							}
-							string positionX = "";
-							
-							 if(send(new_socketserv, helloserv, strlen(helloserv), 0)>=0){}
+							 int* list = new int[3];
+							 list[0] = player1.getPosX();
+							 list[1] = player1.getPosY();
+							 list[2] = player1.frame;
+							 
+							 helloserv = datasend(list,3);
+
+							  if(send(new_socketserv, helloserv, strlen(helloserv), 0)>=0){}
 							  valreadserv = read(new_socketserv, bufferserv, 1024);
-                            //  printf("%s\n", bufferserv);
-							
-							for(int i = 0; i < 5; i++){
-								if(intchker(bufferserv[i])){
-									positionX.push_back(bufferserv[i]);
-								}
 
-							}
-							
-							player2.changePos(std::stoi(positionX), 0);
-							cout << positionX << endl;
-
+							  int* recvlist1 = new int[3];
+							  recvlist1 = datarecv(bufferserv,3);
+							  
+							  player2.changePos(recvlist1[0],recvlist1[1]);
+							  
+							  player2.frame = recvlist1[2];
+					 
+					
 
 						}
 						if(mainchk == 10){
+							 int* list = new int[3];
+							 list[0] = player1.getPosX();
+							 list[1] = player1.getPosY();
+							 list[2] = player1.frame;
+							 hellocl = datasend(list,3);
 
-								string hellohiicl = to_string(player2.getPosX());
-							hellocl = new char[hellohiicl.length()];
-							for (int i = 0; i < hellohiicl.length(); i++)
-							{
-								/* code */
-								hellocl[i] = hellohiicl.at(i);
-								
-							}
-							 send(sockcl, hellocl, strlen(hellocl), 0);
-							 valreadcl = read(sockcl, buffercl, 1024);
-                            //  printf("%s\n", buffercl);
-							string positionXofServer = "";
-							for (int i = 0; i < 5; i++)
-							{
-								/* code */
-								if(intchker(buffercl[i])){
-									positionXofServer.push_back(buffercl[i]);
-								}
-							}
-							player1.changePos(std::stoi(positionXofServer),0);
-							cout << positionXofServer << endl;
+							send(sockcl, hellocl, strlen(hellocl), 0);
+						
+							valreadcl = read(sockcl, buffercl, 1024);
+
+							  int* recvlist2 = new int[3];
+							  recvlist2 = datarecv(buffercl,3);
+							  
+							  player2.changePos(recvlist2[0],recvlist2[1]);
+							 cout << recvlist2[2];
+							 
+							  player2.frame = recvlist2[2];
+					 
 
 
+					
 						}
 					
 
@@ -2540,19 +2598,19 @@ int main( int argc, char* args[] )
 							// prevposX=curposX;
 							// prevposY=curposY;
 						if(!onYulu){
-							if(mainchk == 9){
+							// if(mainchk == 9){
 							camera.x = ( player1.getPosX() + player1.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
 							camera.y = ( player1.getPosY() + player1.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
 							camera.w = gWindow.getWidth();
 							camera.h = gWindow.getHeight();
-							}
-							else{
-							camera.x = ( player2.getPosX() + player1.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
-							camera.y = ( player2.getPosY() + player1.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
-							camera.w = gWindow.getWidth();
-							camera.h = gWindow.getHeight();
+							// }
+							// else{
+							// camera.x = ( player2.getPosX() + player1.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+							// camera.y = ( player2.getPosY() + player1.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+							// camera.w = gWindow.getWidth();
+							// camera.h = gWindow.getHeight();
 
-							}
+							// }
 
 							//Keep the camera in bounds
 							if( camera.x < 0 )
@@ -2605,17 +2663,17 @@ int main( int argc, char* args[] )
 						gBackgroundPlayTexture.render(0,0,&bg);
 
 						// //for marking where temp is set to 1
-						if(mainchk == 9){
+						// if(mainchk == 9){
 						curposX = player1.getPosX();
 						curposY = player1.getPosY();
 						// cout<<curposX<<" "<<curposY<<endl;
-						}
-						else if(mainchk == 10){
-						curposX = player2.getPosX();
-						curposY = player2.getPosY();
+						// }
+						// else if(mainchk == 10){
+						// curposX = player2.getPosX();
+						// curposY = player2.getPosY();
 
 
-						}
+						// }
 						// row = mapElement(curposX,curposY)/xNoSquares;
 						// col = mapElement(curposX,curposY)%xNoSquares;
 						// cout<<row<<" "<<col<<endl;
@@ -2635,18 +2693,19 @@ int main( int argc, char* args[] )
 						
 						if(!onYulu){
 
-						SDL_Rect* currentClip = &gSpriteClips[player1.frame];
+						SDL_Rect* currentClip1 = &gSpriteClips[player1.frame];
+						SDL_Rect* currentClip2 = &gSpriteClips[player2.frame];
 						gSpriteSheetTexture.set(30,60);
-						if(mainchk == 9){
+						// if(mainchk == 9){
 						player1.set(30,60);
-						}
-						if(mainchk == 10){
+						// }
+						// if(mainchk == 10){
 							player2.set(30,60);
-						}
+						// }
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
-						player1.render(camera.x,camera.y,currentClip);
-						player2.render(camera.x,camera.y,currentClip);
+						player1.render(camera.x,camera.y,currentClip1);
+						player2.render(camera.x,camera.y,currentClip2);
 						}
 						else{
 						SDL_Rect* currentClip = &gYuluClips[yulu.frame];
@@ -2689,12 +2748,12 @@ int main( int argc, char* args[] )
 						playerScore.render();
 						quitButton.show();
 						bool nishant;
-						if(mainchk == 9){
+						// if(mainchk == 9){
 						nishant = CheckCaught(player1);
-						}
-						if(mainchk == 10){
-							nishant = CheckCaught(player2);
-						}
+						// }
+						// if(mainchk == 10){
+						// 	nishant = CheckCaught(player2);
+						// }
 
 						if(nishant){
 							dogTextTexture.loadFromRenderedText("Ahhhh......",white);
