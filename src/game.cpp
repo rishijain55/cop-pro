@@ -447,6 +447,7 @@ LTexture gYuluStandRectTexture;
 LTexture gYuluStandSqTexture;
 LTexture ghelpsectionbg;
 LTexture drinkTexture;
+LTexture foodTexture;
 LTexture gProfessorTexture;
 LTexture gDogTexture;
 LTexture dogTextTexture;
@@ -646,10 +647,6 @@ void ScoreCard::changeMoney(int offset)
 	if (money >= moneyLimit)
 	{
 		money = moneyLimit;
-	}
-	else if (money < 0)
-	{
-		money = 0;
 	}
 }
 void ScoreCard::changeHappiness(int offset)
@@ -2172,7 +2169,7 @@ void displayDrink(int x,int y,int w, int h)
 {
 	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()<=y+h+(mapTileSize*3)/4)
 	{
-		drinkTexture.loadFromRenderedText("Buy Drink for 50 and increase happiness by 1",white);
+		drinkTexture.loadFromRenderedText("Buy Drink for 50 and increase happiness by 1(Press D)",white);
 		drinkTexture.render(gWindow.getWidth() / 2 - drinkTexture.getWidth() / 2, gWindow.getHeight() - drinkTexture.getHeight() * 4);
 	}
 }
@@ -2181,6 +2178,23 @@ void buyDrink(SDL_Event& e){
 	if(e.type==SDL_KEYDOWN && e.key.keysym.sym == SDLK_d && playerScore.money>=50 ){
 		playerScore.changeHappiness(1);
 		playerScore.changeMoney(-50);
+	}
+}
+
+void displayFood(int x,int y,int w, int h)
+{
+	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()<=y+h+(mapTileSize*3)/4)
+	{
+		foodTexture.loadFromRenderedText("Buy Burger for 80  and increase happiness by 1 and health by 10(Press B)",white);
+		foodTexture.render(gWindow.getWidth() / 2 - foodTexture.getWidth() / 2, gWindow.getHeight() - foodTexture.getHeight() * 2);
+	}
+}
+
+void buyFood(SDL_Event& e){
+	if(e.type==SDL_KEYDOWN && e.key.keysym.sym == SDLK_b && playerScore.money>=50 ){
+		playerScore.changeHappiness(1);
+		playerScore.changeHealth(10);
+		playerScore.changeMoney(-80);
 	}
 }
 
@@ -2820,6 +2834,7 @@ int main(int argc, char *args[])
 						package.handleEvent(e);
 						if(isPlayerInside(1500,1270,mapTileSize,mapTileSize*4)){
 							buyDrink(e);
+							buyFood(e);
 						}
 						if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RSHIFT)
 						{
@@ -2833,8 +2848,12 @@ int main(int argc, char *args[])
 								{
 									yulutravel = 0;
 								}
-
-								onYulu1 = !onYulu1;
+								if(playerScore.money>0 && !onYulu1){
+									onYulu1=true;
+								}
+								else if(onYulu1){
+									onYulu1=false;
+								}
 								player1.frame = 4;
 								yulu1.frame = 1;
 								player1.dir = -1;
@@ -3112,8 +3131,9 @@ int main(int argc, char *args[])
 							// }
 							// if(mainchk == 10){						// }
 							// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
-
+							drawTexture(player1.getPosX()-camera.x,player1.getPosY()-camera.y+45,30,15,0,255,255,50);
 							player1.render(camera.x, camera.y, currentClip1);
+
 						}
 						else
 						{
@@ -3122,7 +3142,7 @@ int main(int argc, char *args[])
 							yulu1.set(60, 60);
 
 							// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
-
+							drawTexture(yulu1.getPosX()-camera.x,yulu1.getPosY()-camera.y,60,60,0,255,255,50);
 							yulu1.render(camera.x, camera.y, currentClip1);
 						}
 						if (!onYulu2)
@@ -3136,7 +3156,7 @@ int main(int argc, char *args[])
 							// }
 							// if(mainchk == 10){						// }
 							// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
-
+							drawTexture(player2.getPosX()-camera.x,player2.getPosY()-camera.y+45,30,15,255,0,0,50);
 							player2.render(camera.x, camera.y, currentClip2);
 						}
 						else
@@ -3146,7 +3166,7 @@ int main(int argc, char *args[])
 							yulu2.set(60, 60);
 
 							// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
-
+							drawTexture(yulu2.getPosX()-camera.x,yulu2.getPosY()-camera.y,60,60,255,0,0,50);
 							yulu2.render(camera.x, camera.y, currentClip2);
 						}
 						// if(!onYulu2){
@@ -3171,6 +3191,7 @@ int main(int argc, char *args[])
 						drawTexture(professor1.getPosX() - 3 * mapTileSize - camera.x, professor1.getPosY() - 5 * mapTileSize / 2 - camera.y, (mapTileSize * 13) / 2, mapTileSize * 13 / 2, 255, 255, 255, 50);
 						drawTexture(dog1.getPosX() - mapTileSize - camera.x, dog1.getPosY() - mapTileSize - camera.y, mapTileSize * 3, mapTileSize * 3, 255, 255, 255, 50);
 						displayDrink(1500,1270,mapTileSize,mapTileSize*4);
+						displayFood(1500,1270,mapTileSize,mapTileSize*4);
 						// SDL_Color white = {255, 255, 255, 255};
 						package.pickup(dropArea[pickupDestiny]);
 						package.drop();
