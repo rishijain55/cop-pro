@@ -2853,7 +2853,7 @@ int main(int argc, char *args[])
 							}
 							// }
 
-							yulu1.changePos(player1.getPosX(), player1.getPosY());
+							yulu1.changePos(player1.getPosX()/30*30, player1.getPosY()/30*30);
 						}
 						else if (onYulu1)
 						{
