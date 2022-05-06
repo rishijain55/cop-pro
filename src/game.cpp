@@ -6,18 +6,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
-
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#define PORT 8080
-#include <arpa/inet.h>
-
-
 using namespace std;
 
 //Screen dimension constants
@@ -111,6 +99,12 @@ int tile[80][140]={
 };
 // int tile[80][140]={};
 int temp[80][140]={0};
+
+int pickupX[] ={1020,1380,1140,3420,2820};
+int pickupY[] ={720,540,2790,420,2940};
+int dropX[] ={7440,7200,5400,6060,4920};
+int dropY[] ={360 ,1380,2730,1080,1380};
+string dropArea[] ={"Himadri","LHC","Hockey Ground","Library","SIT"};
 
 
 //Texture wrapper class
@@ -221,7 +215,8 @@ class Player
         Player();
 
         //Takes key presses and adjusts the dot's velocity
-        void handleEvent( SDL_Event& e );
+        void handleEvent( );
+        bool handleEventSingle( SDL_Event& e );
 
 		void set(int w, int h);
 
@@ -244,23 +239,58 @@ class Player
         int mVelX, mVelY;
 
 };
+
+//The application time based timer
+class LTimer
+{
+    public:
+        //Initializes variables
+        LTimer();
+
+        //The various clock actions
+        void start();
+        void stop();
+        void pause();
+        void unpause();
+
+        //Gets the timer's time
+        Uint32 getTicks();
+
+        //Checks the status of the timer
+        bool isStarted();
+        bool isPaused();
+
+    private:
+        //The clock time when the timer started
+        Uint32 mStartTicks;
+
+        //The ticks stored when the timer was paused
+        Uint32 mPausedTicks;
+
+        //The timer status
+        bool mPaused;
+        bool mStarted;
+};
+
+
 class Yulu
 {
     public:
         //The dimensions of the dot
-        int YULU_WIDTH = 30;
+        int YULU_WIDTH = 60;
         int YULU_HEIGHT = 60;
 		int frame = 1;
 		int dir=-1;
 		bool wasYuluMoving=false;
         //Maximum axis velocity of the dot
-        static const int PLAYER_VEL = 30;
+        static const int YULU_VEL = 30;
 
         //Initializes the variables
         Yulu();
 
         //Takes key presses and adjusts the dot's velocity
-        void handleEvent( SDL_Event& e );
+        void handleEvent( );
+		bool handleEventSingle( SDL_Event& e );
 		void changeFrame( int dir );
 		void set(int w, int h);
 		void changePos(int x,int y);
@@ -369,6 +399,21 @@ class ScoreCard
 	int health,money,happiness;
 };
 
+class LPackage
+{
+	public:
+	int pickupPosX,pickupPosY;
+	int dropPosX,dropPosY;
+	bool pickedUp;
+	LPackage();
+	void changePos(int px,int py,int dx,int dy);
+	void render(int camX,int camY,SDL_Rect* clip = NULL);
+	void pickup( string s);
+	void drop();
+	void handleEvent(SDL_Event& e);
+
+
+};
 
 //Starts up SDL and creates window
 bool init();
@@ -398,10 +443,10 @@ LTexture gProfessorTexture;
 LTexture gDogTexture;
 LTexture dogTextTexture;
 LTexture profTextTexture;
-Player player1;
-Player player2;
+Player player;
 Yulu yulu;
 Dog dog1;
+LPackage package;
 Professor professor1;
 LTexture gPlayBefore;
 LTexture gPlayHover;
@@ -410,18 +455,25 @@ LTexture quitText;
 LTexture yuluText;
 LTexture gHeartTexture;
 LTexture gCoinTexture;
+LTexture gPickupTexture;
+LTexture gBoxTexture;
+LTexture gDropTexture;
 LTexture gHappinessTexture;
 LTexture gMoneyTextTexture;
 ScoreCard playerScore;
+LTimer frameTime;
 int mapTileSize = 60;
 int xNoSquares =140;
 int yNoSquares =80;
-int playerHoldMoveSpeed=4;
-int yuluHoldMoveSpeed=1;
+int playerHoldMoveSpeed=6;
+int yuluHoldMoveSpeed=6;
 int play = 2;
 int professorFrame =0;
 int DogFrame =0;
 int countFrame =0;
+int YuluFrame=0;
+int pickupDestiny =0;
+bool onYulu =false;
 
 
 const int WALKING_ANIMATION_FRAMES = 8;
@@ -468,6 +520,82 @@ bool wallCollision(int x,int y)
 	return tile[tileRow][tileCol]==0;
 
 }
+
+LPackage:: LPackage()
+{
+	pickedUp=false;
+	pickupPosX=0;
+	pickupPosY=0;
+	dropPosX=0;
+	dropPosY=0;
+
+}
+void LPackage::changePos(int px,int py,int dx,int dy)
+{
+	pickupPosX=px;
+	pickupPosY=py;
+	dropPosX=dx;
+	dropPosY=dy;
+}
+
+void LPackage:: render(int camX,int camY,SDL_Rect* clip ){
+	if(!pickedUp){
+		gBoxTexture.set(30,30);
+		gBoxTexture.render(pickupPosX-camX,pickupPosY-camY,clip);
+	}
+	else{
+		drawTexture(dropPosX-camX,dropPosY-camY,mapTileSize/2,mapTileSize/2,255,255,255,255);
+	}
+}
+void LPackage ::pickup(string s )
+{
+
+	SDL_Color white ={255,255,255,255};
+		if(!pickedUp){
+		if(player.getPosX()>=pickupPosX-mapTileSize/2 && player.getPosX()<pickupPosX+mapTileSize && player.getPosY()>=pickupPosY-mapTileSize/2 && player.getPosY()<pickupPosY+mapTileSize){
+
+			cout<<"inreach"<<endl;
+			gPickupTexture.loadFromRenderedText("Pick the box using RSHIFT. Deliver at "+s,white);
+			gPickupTexture.render((gWindow.getWidth()-gPickupTexture.getWidth())/2,(gWindow.getHeight()-gPickupTexture.getHeight()*4));
+		}
+		}
+}
+void LPackage ::drop()
+{
+	SDL_Color white ={255,255,255,255};
+	if(pickedUp){
+		if(player.getPosX() >= dropPosX-mapTileSize/2 && player.getPosX()<dropPosX+mapTileSize && player.getPosY() >= dropPosY-mapTileSize/2 && player.getPosY()<dropPosY+mapTileSize){
+
+			cout<<"inreach"<<endl;
+			
+
+			gDropTexture.loadFromRenderedText("Drop the box using RSHIFT ",white);
+			gDropTexture.render((gWindow.getWidth()-gDropTexture.getWidth())/2,(gWindow.getHeight()-gDropTexture.getHeight()*2));
+		}
+	}
+}
+
+void LPackage ::handleEvent(SDL_Event&e)
+{
+		if(!pickedUp){
+			if(player.getPosX()>=pickupPosX-mapTileSize/2 && player.getPosX()<pickupPosX+mapTileSize && player.getPosY()>=pickupPosY-mapTileSize/2 && player.getPosY()<pickupPosY+mapTileSize){
+				if(e.type==SDL_KEYDOWN && e.key.keysym.sym==SDLK_RSHIFT){
+					pickedUp=true;
+				}
+			}
+		}	
+		else{
+			if(player.getPosX() >= dropPosX-mapTileSize/2 && player.getPosX()<dropPosX+mapTileSize && player.getPosY() >= dropPosY-mapTileSize/2 && player.getPosY()<dropPosY+mapTileSize){
+				if(e.type==SDL_KEYDOWN && e.key.keysym.sym==SDLK_RSHIFT){
+					pickedUp=false;
+					playerScore.changeMoney(20);
+					pickupDestiny=(pickupDestiny+1)%5;
+				}
+			}			
+		}
+}
+
+
 ScoreCard :: ScoreCard()
 {
 	money=100;
@@ -615,74 +743,109 @@ void Player:: changeFrame( int dir ){
 
 }
 
-void Player::handleEvent( SDL_Event& e )
+void Player::handleEvent(  )
 {
     //If a key was pressed
-    if( e.type == SDL_KEYDOWN )
+	SDL_PumpEvents();
+	const Uint8* keystates = SDL_GetKeyboardState(NULL);
+		if(keystates[SDL_SCANCODE_LEFT] && countFrame==0) {
+							changeFrame(3);
+							
+							mVelX -= PLAYER_VEL;
+							// cout<<"player moved"<<endl;
+		}
+		else{
+			//  countFrame= (countFrame+1)%playerHoldMoveSpeed;
+		}
+		if(keystates[SDL_SCANCODE_RIGHT]  && countFrame==0) {
+							changeFrame(1);
+							
+							mVelX += PLAYER_VEL;
+		}
+		else{
+			//  countFrame= (countFrame+1)%playerHoldMoveSpeed;
+		}
+			// if( e.type == SDL_KEYDOWN )
+		if(keystates[SDL_SCANCODE_UP]  && countFrame==0) {
+							changeFrame(0);
+							mVelY -= PLAYER_VEL;							
+		}
+		else{
+			//  countFrame= (countFrame+1)%playerHoldMoveSpeed;
+		}
+		if(keystates[SDL_SCANCODE_DOWN]  && countFrame==0) {
+							changeFrame(2);
+							
+							mVelY += PLAYER_VEL;
+							
+		}
+		else{
+			//  countFrame= (countFrame+1)%playerHoldMoveSpeed;
+		}
+		if(!keystates[SDL_SCANCODE_DOWN] && !keystates[SDL_SCANCODE_UP] && !keystates[SDL_SCANCODE_RIGHT] && !keystates[SDL_SCANCODE_LEFT]){
+			countFrame=0;
+		}
+		cout<<countFrame<<endl;
+		countFrame= (countFrame+1)%playerHoldMoveSpeed;
+
+}
+
+bool Player::handleEventSingle( SDL_Event& e )
+{
+    //If a key was pressed
+	bool oneTimePress =false;
+    if( e.type == SDL_KEYDOWN && e.key.repeat==0)
     {
+
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
 
             case SDLK_UP: 
-				if(!wasPlayerMoving || countFrame==0){
+
 					changeFrame(0);
-					wasPlayerMoving=true;
 					mVelY -= PLAYER_VEL;
-				}
-				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+					oneTimePress =true;
+					// cout<<"player moved"<<endl;
+
 
 			break;
             case SDLK_DOWN:
 			
-				if(!wasPlayerMoving || countFrame==0){
+
 					changeFrame(2);
-					wasPlayerMoving=true;
 					mVelY += PLAYER_VEL;
-				}
-				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+					oneTimePress =true;
+					// cout<<"player moved"<<endl;
+
 
 			break;
             case SDLK_LEFT:
 			
-				if(!wasPlayerMoving || countFrame==0){
+
 					changeFrame(3);
-					wasPlayerMoving=true;
+					oneTimePress =true;
 					mVelX -= PLAYER_VEL;
-				}
-				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+					// cout<<"player moved"<<endl;
+
 
 			break;
             case SDLK_RIGHT: 
 		
-				if(!wasPlayerMoving || countFrame==0){
+
 					changeFrame(1);
-					wasPlayerMoving=true;
+
 					mVelX += PLAYER_VEL;
-				}
-				countFrame= (countFrame+1)%playerHoldMoveSpeed;
+					oneTimePress =true;
+
 
 			break;
         }
 
-
+		
 
     }
-    //If a key was released
-    else if( e.type == SDL_KEYUP  )
-    {
-		countFrame=0;
-		// && e.key.repeat == 0
-        //Adjust the velocity
-        // switch( e.key.keysym.sym )
-        // {
-            // case SDLK_UP: mVelY += PLAYER_VEL; break;
-            // case SDLK_DOWN: mVelY -= PLAYER_VEL; break;
-            // case SDLK_LEFT: mVelX += PLAYER_VEL; break;
-            // case SDLK_RIGHT: mVelX -= PLAYER_VEL; break;
-			wasPlayerMoving = false;
-        // }
-    }
+	return oneTimePress;
 }
 void Player :: set(int w, int h)
 {
@@ -691,6 +854,7 @@ void Player :: set(int w, int h)
 }
 void Player::move(int camX, int camY)
 {
+
     //Move the dot left or right
     mPosX += mVelX;
 
@@ -716,6 +880,7 @@ void Player::move(int camX, int camY)
 	}
 	mVelX=0;
 	mVelY=0;
+	
 
 }
 void Player::render( int camX, int camY, SDL_Rect* clip )
@@ -1129,83 +1294,132 @@ void Yulu:: changeFrame( int dir ){
 
 }
 
-void Yulu::handleEvent( SDL_Event& e )
+
+void Yulu::handleEvent(  )
 {
     //If a key was pressed
-    if( e.type == SDL_KEYDOWN )
+	SDL_PumpEvents();
+	const Uint8* keystatesyulu = SDL_GetKeyboardState(NULL);
+		bool pressed = false;
+		if(keystatesyulu[SDL_SCANCODE_LEFT] ) {
+							frame =3;
+							wasYuluMoving=true;
+							pressed=true;
+							mVelX -= YULU_VEL;
+							// cout<<"player moved"<<endl;
+							cout<<"player moved left"<<endl;
+
+							// YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+		else{
+			//  YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+		if(keystatesyulu[SDL_SCANCODE_RIGHT]  ) {
+							frame =1;
+							wasYuluMoving=true;
+							pressed=true;
+							mVelX += YULU_VEL;
+							cout<<"player moved right"<<endl;
+							// YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+		else{
+			//  YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+			// if( e.type == SDL_KEYDOWN )
+		if(keystatesyulu[SDL_SCANCODE_UP]  ) {
+							frame =0;
+							wasYuluMoving=true;
+							pressed=true;
+							mVelY -= YULU_VEL;
+							// cout<<"player moved"<<endl;
+							cout<<"player moved up"<<endl;
+
+							// YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+		else{
+			//  YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+		if(keystatesyulu[SDL_SCANCODE_DOWN]  ) {
+							frame =2;
+							wasYuluMoving=true;
+							pressed=true;
+							mVelY += YULU_VEL;
+							// cout<<"player moved"<<endl;
+							cout<<"player moved down"<<endl;
+
+							// YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+		else{
+			//  YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+		}
+		if(!keystatesyulu[SDL_SCANCODE_DOWN] && !keystatesyulu[SDL_SCANCODE_UP] && !keystatesyulu[SDL_SCANCODE_RIGHT] && !keystatesyulu[SDL_SCANCODE_LEFT]){
+			YuluFrame=0;
+			cout<<"baar baar"<<endl;
+		}
+		cout<<"frame"<<YuluFrame<<endl;
+		YuluFrame= (YuluFrame+1)%yuluHoldMoveSpeed;
+
+}
+
+bool Yulu::handleEventSingle( SDL_Event& e )
+{
+    //If a key was pressed
+	bool oneTimePress =false;
+    if( e.type == SDL_KEYDOWN && e.key.repeat==0)
     {
+
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
 
             case SDLK_UP: 
-					wasYuluMoving=false;
-	
-				if(!wasYuluMoving || countFrame==0){
-					wasYuluMoving=true;
-					mVelY -= PLAYER_VEL;
+
 					frame = 0;
-				}
-
-				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
-
+					mVelY -= YULU_VEL;
+					oneTimePress =true;
+					cout<<"player moved"<<endl;
 
 
 			break;
             case SDLK_DOWN:
-					wasYuluMoving=false;
-				if(!wasYuluMoving || countFrame==0){
-					wasYuluMoving=true;
-					mVelY += PLAYER_VEL;
-					frame =2;
-				}
-				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
+			
+
+					frame = 2;
+					mVelY += YULU_VEL;
+					oneTimePress =true;
+					cout<<"player moved"<<endl;
+
 
 			break;
             case SDLK_LEFT:
-					wasYuluMoving=false;
-				if(!wasYuluMoving || countFrame==0){
-					wasYuluMoving=true;
-					mVelX -= PLAYER_VEL;
-					frame =3;
-				}
-				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
+			
+
+					frame = 3;
+					oneTimePress =true;
+					mVelX -= YULU_VEL;
+					cout<<"player moved"<<endl;
+
 
 			break;
             case SDLK_RIGHT: 
-					wasYuluMoving=false;
-				if(!wasYuluMoving || countFrame==0){
-					wasYuluMoving=true;
-					mVelX += PLAYER_VEL;
-					frame =1;
-				}
-				countFrame= (countFrame+1)%yuluHoldMoveSpeed;
+		
 
-			break; 
-			default :
+					frame = 1;
+					mVelX += YULU_VEL;
+					oneTimePress =true;
+					cout<<"player moved"<<endl;
+
+
 			break;
-
         }
 
-
+		
 
     }
+	return oneTimePress;
     //If a key was released
-    else if( e.type == SDL_KEYUP  )
-    {
-		countFrame=0;
-		// && e.key.repeat == 0
-        //Adjust the velocity
-        // switch( e.key.keysym.sym )
-        // {
-            // case SDLK_UP: mVelY += PLAYER_VEL; break;
-            // case SDLK_DOWN: mVelY -= PLAYER_VEL; break;
-            // case SDLK_LEFT: mVelX += PLAYER_VEL; break;
-            // case SDLK_RIGHT: mVelX -= PLAYER_VEL; break;
-			wasYuluMoving = false;
-        // }
-    }
 }
+
 void Yulu :: set(int w, int h)
 {
 	YULU_WIDTH=w;
@@ -1236,6 +1450,7 @@ void Yulu::move(int camX, int camY)
 		mPosX-=mVelX;
 		mPosY-=mVelY;
 	}
+	// cout<<"move"<<endl;
 	mVelX=0;
 	mVelY=0;
 
@@ -1271,6 +1486,108 @@ bool Yulu :: collided()
 	collided = collided||(wallCollision(mPosX+YULU_WIDTH/2,mPosY+YULU_HEIGHT/2));		
 	collided = collided||(wallCollision(mPosX+YULU_WIDTH/2,mPosY));		
 	return collided;
+}
+
+LTimer::LTimer()
+{
+    //Initialize the variables
+    mStartTicks = 0;
+    mPausedTicks = 0;
+
+    mPaused = false;
+    mStarted = false;
+}
+
+void LTimer::start()
+{
+    //Start the timer
+    mStarted = true;
+
+    //Unpause the timer
+    mPaused = false;
+
+    //Get the current clock time
+    mStartTicks = SDL_GetTicks();
+    mPausedTicks = 0;
+}
+
+void LTimer::stop()
+{
+    //Stop the timer
+    mStarted = false;
+
+    //Unpause the timer
+    mPaused = false;
+
+    //Clear tick variables
+    mStartTicks = 0;
+    mPausedTicks = 0;
+}
+
+void LTimer::pause()
+{
+    //If the timer is running and isn't already paused
+    if( mStarted && !mPaused )
+    {
+        //Pause the timer
+        mPaused = true;
+
+        //Calculate the paused ticks
+        mPausedTicks = SDL_GetTicks() - mStartTicks;
+        mStartTicks = 0;
+    }
+}
+
+void LTimer::unpause()
+{
+    //If the timer is running and paused
+    if( mStarted && mPaused )
+    {
+        //Unpause the timer
+        mPaused = false;
+
+        //Reset the starting ticks
+        mStartTicks = SDL_GetTicks() - mPausedTicks;
+
+        //Reset the paused ticks
+        mPausedTicks = 0;
+    }
+}
+
+Uint32 LTimer::getTicks()
+{
+    //The actual timer time
+    Uint32 time = 0;
+
+    //If the timer is running
+    if( mStarted )
+    {
+        //If the timer is paused
+        if( mPaused )
+        {
+            //Return the number of ticks when the timer was paused
+            time = mPausedTicks;
+        }
+        else
+        {
+            //Return the current time minus the start time
+            time = SDL_GetTicks() - mStartTicks;
+        }
+    }
+
+    return time;
+}
+
+bool LTimer::isStarted()
+{
+    //Timer is running and paused or unpaused
+    return mStarted;
+}
+
+bool LTimer::isPaused()
+{
+    //Timer is running and paused
+    return mPaused && mStarted;
 }
 
 
@@ -1526,7 +1843,7 @@ void LWindow::handleEvent( SDL_Event& e )
 		if( updateCaption )
 		{
 			std::stringstream caption;
-			caption << "MAZE-GAME " << ( ( mMouseFocus ) ? "PLAY" : "PLAY" ) << " -|- " << ( ( mKeyboardFocus ) ? " multiplayer" : " multiplayer" );
+			caption << "SDL Tutorial - MouseFocus:" << ( ( mMouseFocus ) ? "On" : "Off" ) << " KeyboardFocus:" << ( ( mKeyboardFocus ) ? "On" : "Off" );
 			SDL_SetWindowTitle( mWindow, caption.str().c_str() );
 		}
 	}
@@ -1661,7 +1978,7 @@ class Button
 	Button( int x, int y, int w, int h, string beforeButton, string afterButton );
 	void set(int x, int y, int w, int h);
     //Handles events and set the button's sprite region
-    int handle_events(SDL_Event &event, int playOrNot, int server, int beforegame);
+    void handle_events(SDL_Event &event, int playOrNot);
     
     //Shows the button on the screen
     void show();
@@ -1694,7 +2011,7 @@ void Button::set( int x, int y, int w, int h )
     
 }
 
-int Button::handle_events(SDL_Event &event, int playOrNot, int server, int beforegame)
+void Button::handle_events(SDL_Event &event, int playOrNot)
 {
     //The mouse offsets
     int x = 0, y = 0;
@@ -1735,17 +2052,8 @@ int Button::handle_events(SDL_Event &event, int playOrNot, int server, int befor
             {
                 //Set the button sprite
                 play = playOrNot;
-				if(beforegame == 1){
-					if(server == 1){
-						return 9;
-					}
-					if(server == 0){
-						return 10;
-					}
-				}
             }
         }
-		return 0;
     }
 }
 void Button::show()
@@ -1787,6 +2095,11 @@ bool loadMedia()
 		success = false;
 	}
 	if( !gHappinessTexture.loadFromFile("../assets/happy.png"))
+	{
+		printf( "Failed to load happiness!\n" );
+		success = false;
+	}
+	if( !gBoxTexture.loadFromFile("../assets/box.png"))
 	{
 		printf( "Failed to load happiness!\n" );
 		success = false;
@@ -1985,7 +2298,7 @@ void close()
 	SDL_Quit();
 }
 
-bool CheckCaught(Player player){
+bool CheckCaught(){
 	bool caught=false;
 	SDL_Color white ={255,255,255,255};
 	if(player.getPosX()>=professor1.getPosX()-3*mapTileSize && player.getPosX()<professor1.getPosX()+mapTileSize*7/2 && player.getPosY()>=professor1.getPosY()-3*mapTileSize && player.getPosY()<professor1.getPosY()+mapTileSize*4 ){
@@ -2008,86 +2321,10 @@ bool CheckCaught(Player player){
 	return caught;
 }
 
-int intchker(char a){
-	if(a>=48 && a<=57){
-		return 2;
-	}
-	if(a=='+'){
-		return 1;
-	}
-	return 0;
-}
-
-
-
-char* datasend(int* arr, int noofdata){
-		int* list = new int[100];
-		for (int i = 0; i < noofdata; i++)
-		{
-			/* code */
-			list[i] = arr[i];
-
-		}
-		string sum = "";
-		for (int i = 0; i < noofdata; i++)
-		{
-			/* code */
-			sum += to_string(list[i]);
-			sum += "_";
-		}
-		int len = sum.length();
-		char* data = new char[len];
-
-		for (size_t i = 0; i < len; i++)
-		{
-			/* code */
-			data[i] = sum.at(i);
-			
-
-		}
-	
-		return data;
-		
-
-}
-
-
-int* datarecv(char* arr, int noofdata){
-	int* receiveddata = new int[noofdata];
-	int count = 0;
-	int itr = 0;
-	string s = "";
-	while(count < noofdata){
-		if(arr[itr] == '_'){
-			receiveddata[count] = std::stoi(s);
-			count++;
-			s = "";
-
-		}
-		else{
-			s.push_back(arr[itr]);
-
-		}
-
-		itr++;
-	
-
-	}
-
-	cout<<receiveddata[2]<<" frame sent"<<endl;
-	
-
-
-	return receiveddata;
-
-}
-
-
-
 int main( int argc, char* args[] )
-{	int mainchk  = 0;
+{
+		const Uint8* keystates = SDL_GetKeyboardState(NULL);
 
-	
 	//Start up SDL and create window
 	if( !init() )
 	{
@@ -2143,362 +2380,71 @@ int main( int argc, char* args[] )
 			int curposX = 0;
 			int curposY = 0;
 			int row,col;
-			bool onYulu =false;
+			
+			
 			professor1.changePos(5940,1020);
 			dog1.changePos(2100,2190);
-
-			while( !quit )
-			{	
-
-				//Handle events on queue
-				while( SDL_PollEvent( &e ) != 0 )
-				{
-			
-				 if( play== 0 )
-				{
-					back.handle_events(e,2,2,2);
-
-				}
-				else if(play==2)
-				{
-					
-					
-					helpus1.handle_events(e,0,1,0);
-					
-
-					 if(playButton1.handle_events(e,1,0,1) == 10){
-						mainchk = 10;
-						
-						break;
-					}
-					
-
-					if(playButton2.handle_events(e,1,1,1) == 9) {
-						 mainchk = 9;
-					
-						 break;
-					}
-
-
-				}
-
-					
-
-					if( e.type == SDL_QUIT )
-					{
-						quit = true;
-					}
-					// //for handing keys for temp
-				  	// if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RCTRL){
-					// 		row = mapElement(curposX,curposY)/xNoSquares;
-					// 		col = mapElement(curposX,curposY)%xNoSquares;
-					// 		temp[row][col]=0;							
-					// }
-					// else if(e.type==SDL_KEYDOWN &&e.key.keysym.sym == SDLK_LCTRL){
-					// 	if(eraseMark==false){
-					// 		eraseMark=true;
-					// 	}
-					// 	else{
-					// 		eraseMark= false;
-					// 	}
-					// }
-					//
-							// prevposX=curposX;
-							// prevposY=curposY;
-					//Handle window events
-					gWindow.handleEvent( e );
-				}
-
-				//Only draw when not minimized
-				if (mainchk == 9 || mainchk == 10) {break;}
-				else{
-
-				if( !gWindow.isMinimized() )
-				{
-
-					
-				    if(play == 0){
-					//help screen
-
-
-
-					ghelpsectionbg.set(gWindow.getWidth(),gWindow.getHeight());
-					ghelpsectionbg.render(0,0);
-
-					back.set( (gWindow.getWidth()*90)/100-gWindow.getWidth()/10, (gWindow.getHeight()*995)/1000-gWindow.getHeight()/10, (gWindow.getWidth()*30)/100, (gWindow.getHeight()*5)/100 );
-					back.show();
-
-					SDL_RenderPresent( gRenderer );
-					}
-					else if(play ==2){
-					//start screen
-
-
-
-
-					player1.changePos(30,0);
-					player2.changePos(70,0);
-					yulu.reset();
-					professor1.reset();
-					dog1.reset();
-					playerScore.reset();
-					// playButton.set( gWindow.getWidth()/2-gWindow.getWidth()/10, gWindow.getHeight()/3-gWindow.getHeight()/10, gWindow.getWidth()/5, gWindow.getHeight()/5 );
-					playButton2.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*69)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
-					playButton1.set( (gWindow.getWidth()*37)/100-gWindow.getWidth()/10, (gWindow.getHeight()*79)/100-gWindow.getHeight()/10, gWindow.getWidth()/2, gWindow.getHeight()/8 );
-					helpus1.set( (gWindow.getWidth()*90)/100-gWindow.getWidth()/10, (gWindow.getHeight()*995)/1000-gWindow.getHeight()/10, (gWindow.getWidth()*30)/100, (gWindow.getHeight()*5)/100 );
-
-
-					SDL_Color textColor = { 255, 255, 255, 255 };
-					string newGame = "New Game";
-					string quit = "Quit";
-					quitText.loadFromRenderedText(quit, textColor);
-					gBackgroundStartScreenTexture.set(gWindow.getWidth(),gWindow.getHeight());
-					gBackgroundStartScreenTexture.render(0,0);
-					
-					// playButton.show();
-					playButton2.show();
-					playButton1.show();
-					helpus1.show();
-
-				
-					//Update screen
-					SDL_RenderPresent( gRenderer );
-
-					}
-				
-				}
-				}
-			}
-
-				cout << mainchk;
-
-
-
-
-	int server_fd, new_socketserv, valreadserv;
-    struct sockaddr_in addressserv;
-    int optserv = 1;
-    int addrlenserv = sizeof(addressserv);
-    char bufferserv[1024] = { 0 };
-    char* helloserv = "Hello from server";
-
- 
-			
-			if(mainchk == 9)
-			
-			
-			 {
-				
-    // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0))
-        == 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
- 
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET,
-                   SO_REUSEADDR | SO_REUSEPORT, &optserv,
-                   sizeof(optserv))) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
-    addressserv.sin_family = AF_INET;
-    addressserv.sin_addr.s_addr = INADDR_ANY;
-    addressserv.sin_port = htons(PORT);
- 
-    // Forcefully attaching socket to the port 8080
-    if (bind(server_fd, (struct sockaddr*)&addressserv,
-             sizeof(addressserv))
-        < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-    if (listen(server_fd, 3) < 0) {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-    if ((new_socketserv
-         = accept(server_fd, (struct sockaddr*)&addressserv,
-                  (socklen_t*)&addrlenserv))
-        < 0) {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
-    valreadserv = read(new_socketserv, bufferserv, 1024);
-    printf("%s\n", bufferserv);
-    send(new_socketserv, helloserv, strlen(helloserv), 0);
-    printf("Hello message sent\n");
-			 }
-
-
-
-
-
-				 int sockcl = 0, valreadcl;
-    struct sockaddr_in serv_addrcl;
-    char* hellocl = "Hello from client";
-    char buffercl[1024] = { 0 };
-			
-
-			if(mainchk == 10)
-			
-			
-			
-			 {
-
-
-				 
-    if ((sockcl = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("\n Socket creation error \n");
-        return -1;
-    }
- 
-    serv_addrcl.sin_family = AF_INET;
-    serv_addrcl.sin_port = htons(PORT);
- 
-    // Convert IPv4 and IPv6 addresses from text to binary
-    // form
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addrcl.sin_addr)
-        <= 0) {
-        printf(
-            "\nInvalid address/ Address not supported \n");
-        return -1;
-    }
- 
-    if (connect(sockcl, (struct sockaddr*)&serv_addrcl,
-                sizeof(serv_addrcl))
-        < 0) {
-        printf("\nConnection Failed \n");
-        return -1;
-    }
-    send(sockcl, hellocl, strlen(hellocl), 0);
-    printf("Hello message sent\n");
-    valreadcl = read(sockcl, buffercl, 1024);
-    printf("%s\n", buffercl);
-			}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-           eraseMark = false;
-			//Event handler
-			// SDL_Event e;
-			 camera = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
-			 bg = { 0, 0, gWindow.getWidth(),gWindow.getHeight()};
-			 prevposX = 0;
-			 prevposY = 0;
-			 curposX = 0;
-			 curposY = 0;
-			// i row,col;
-		 onYulu =false;
-			professor1.changePos(5940,1020);
-			dog1.changePos(2100,2190);
-
-
-
-
-
-
-
-
-
 			//While application is running
 			while( !quit )
 			{	
+				int singlepressPlayer =0;
+				int singlepressYulu =0;
+				frameTime.start();
 
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
 				if(play==1)
 				{
+					package.handleEvent(e);
+
 					
 				  	if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RSHIFT){
 						if(((curposX>=1110 && curposX<=1200)&&(curposY>=390 && curposY<=660))||((curposX>=540 &&curposX<=840)&&(curposY>=930 && curposY<=1020))||((curposX>=3690 &&curposX<=3900)&&(curposY>=2280 && curposY<=2400))||((curposX>=6450 &&curposX<=6540)&&(curposY>=30 && curposY<=480))||((curposX>=6690 &&curposX<=6780)&&(curposY>=1560 && curposY<=1680))||((curposX>=1890 &&curposX<=2040)&&(curposY>=2880 && curposY<=3060))){
 						onYulu=!onYulu;
-						// if(mainchk == 9){
-						player1.frame =4;
-						player1.dir=-1;
-						// }
-						// if(mainchk == 10){
-						// player2.frame == 4;
-						// player2.dir = -1;
-						// }
-
-
+						player.frame =4;
 						yulu.frame=1;
-						
+						player.dir=-1;
 						yulu.dir=-1;
 						}
 					}
 					else
 
 					if(!onYulu){
-					// if(mainchk == 9){	
-					player1.handleEvent(e);
-					player1.move(camera.x,camera.y);
-					yulu.changePos(player1.getPosX(),player1.getPosY());
-					// }
-					// if(mainchk == 10){
-					// player2.handleEvent(e);
-					// player2.move(camera.x,camera.y);
-					// yulu.changePos(player2.getPosX(),player2.getPosY());
-
-					// }
+						if(player.handleEventSingle(e)){
+							cout<<"handled"<<endl;
+							singlepressPlayer =1;
+							player.move(camera.x,camera.y);
+						}
+						// }
+						
+						yulu.changePos(player.getPosX(),player.getPosY());
 
 					}
 					else if(onYulu){
-
-						if(mainchk == 9){
-					yulu.handleEvent(e);
-					yulu.move(camera.x,camera.y);	
-					player1.changePos(yulu.getPosX(),yulu.getPosY());
+						if(yulu.handleEventSingle(e)){
+							cout<<"handled"<<endl;
+							singlepressYulu =1;
+							yulu.move(camera.x,camera.y);
 						}
-						if(mainchk == 10){
-								yulu.handleEvent(e);
-					            yulu.move(camera.x,camera.y);	
-					            player1.changePos(yulu.getPosX(),yulu.getPosY());
-
-						}					
+						player.changePos(yulu.getPosX(),yulu.getPosY());					
 					}
 
-					quitButton.handle_events(e,2,2,2);
+					quitButton.handle_events(e,2);
 
 				}
 				else if( play== 0 )
 				{
-					back.handle_events(e,2,2,2);
+					back.handle_events(e,2);
 
 				}
 				else if(play==2)
 				{
 					
 					
-					helpus1.handle_events(e,0,2,2);
-					playButton2.handle_events(e,1,2,2);
-					playButton1.handle_events(e,1,2,2);
+					helpus1.handle_events(e,0);
+					playButton2.handle_events(e,1);
+					playButton1.handle_events(e,1);
 
 				}
 
@@ -2536,81 +2482,40 @@ int main( int argc, char* args[] )
 					if(play == 1)
 					{
 
-						 if(mainchk == 9){
-							 int* list = new int[3];
-							 list[0] = player1.getPosX();
-							 list[1] = player1.getPosY();
-							 list[2] = player1.frame;
-							 
-							 helloserv = datasend(list,3);
+						package.changePos(pickupX[pickupDestiny],pickupY[pickupDestiny],dropX[pickupDestiny],dropY[pickupDestiny]);
 
-							  if(send(new_socketserv, helloserv, strlen(helloserv), 0)>=0){}
-							  valreadserv = read(new_socketserv, bufferserv, 1024);
-
-							  int* recvlist1 = new int[3];
-							  recvlist1 = datarecv(bufferserv,3);
-							  
-							  player2.changePos(recvlist1[0],recvlist1[1]);
-							  
-							  player2.frame = recvlist1[2];
-					 
-					
-
+					if(!onYulu){
+						if(!singlepressPlayer){
+						player.handleEvent();
+						player.move(camera.x,camera.y);
 						}
-						if(mainchk == 10){
-							 int* list = new int[3];
-							 list[0] = player1.getPosX();
-							 list[1] = player1.getPosY();
-							 list[2] = player1.frame;
-							 hellocl = datasend(list,3);
-
-							send(sockcl, hellocl, strlen(hellocl), 0);
-						
-							valreadcl = read(sockcl, buffercl, 1024);
-
-							  int* recvlist2 = new int[3];
-							  recvlist2 = datarecv(buffercl,3);
-							  
-							  player2.changePos(recvlist2[0],recvlist2[1]);
-							 cout << recvlist2[2];
-							 
-							  player2.frame = recvlist2[2];
-					 
-
-
-					
-						}
-					
-
-					if(professorFrame==3){
+					}
+					else if(onYulu){
+						if(!singlepressYulu){
+						yulu.handleEvent();
+						yulu.move(camera.x,camera.y);
+						}					
+					}
+					if(professorFrame==4){
 						professor1.move();
 						
 					}
-						professorFrame= (professorFrame+1)%4;
-					if(DogFrame==0){
+						professorFrame= (professorFrame+1)%5;
+					if(DogFrame==2){
 						dog1.move();
 						
 					}
-						DogFrame= (DogFrame+1)%1;
+						DogFrame= (DogFrame+1)%3;
 
 
 
 							// prevposX=curposX;
 							// prevposY=curposY;
 						if(!onYulu){
-							// if(mainchk == 9){
-							camera.x = ( player1.getPosX() + player1.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
-							camera.y = ( player1.getPosY() + player1.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
+							camera.x = ( player.getPosX() + player.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
+							camera.y = ( player.getPosY() + player.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
 							camera.w = gWindow.getWidth();
 							camera.h = gWindow.getHeight();
-							// }
-							// else{
-							// camera.x = ( player2.getPosX() + player1.PLAYER_WIDTH/ 2 ) - gWindow.getWidth() / 2;
-							// camera.y = ( player2.getPosY() + player1.PLAYER_HEIGHT / 2 ) - gWindow.getHeight()  / 2;
-							// camera.w = gWindow.getWidth();
-							// camera.h = gWindow.getHeight();
-
-							// }
 
 							//Keep the camera in bounds
 							if( camera.x < 0 )
@@ -2658,22 +2563,14 @@ int main( int argc, char* args[] )
 						
 						bg ={camera.x/4,camera.y/4,camera.w/4,camera.h/4};
 						quitButton.set( gWindow.getWidth()-gWindow.getWidth()/10,0, gWindow.getWidth()/10, gWindow.getHeight()/10 );
-						gBackgroundPlayTexture.loadFromFile("../assets/map.png");
+						gBackgroundPlayTexture.loadFromFile("../assets/mapLow.jpg");
 						gBackgroundPlayTexture.set(gWindow.getWidth(),gWindow.getHeight());
 						gBackgroundPlayTexture.render(0,0,&bg);
 
 						// //for marking where temp is set to 1
-						// if(mainchk == 9){
-						curposX = player1.getPosX();
-						curposY = player1.getPosY();
-						// cout<<curposX<<" "<<curposY<<endl;
-						// }
-						// else if(mainchk == 10){
-						// curposX = player2.getPosX();
-						// curposY = player2.getPosY();
-
-
-						// }
+						curposX = player.getPosX();
+						curposY = player.getPosY();
+						cout<<curposX<<" "<<curposY<<endl;
 						// row = mapElement(curposX,curposY)/xNoSquares;
 						// col = mapElement(curposX,curposY)%xNoSquares;
 						// cout<<row<<" "<<col<<endl;
@@ -2682,7 +2579,7 @@ int main( int argc, char* args[] )
 						// }
 						// // isvis[row+1][col]=1;
 
-						//displaying temp
+						// displaying temp
 						for(int i =0;i<80;i++){
 							for(int j=0;j<140;j++){
 								if(tile[i][j]==1){
@@ -2692,20 +2589,12 @@ int main( int argc, char* args[] )
 						}
 						
 						if(!onYulu){
-
-						SDL_Rect* currentClip1 = &gSpriteClips[player1.frame];
-						SDL_Rect* currentClip2 = &gSpriteClips[player2.frame];
+						SDL_Rect* currentClip = &gSpriteClips[player.frame];
 						gSpriteSheetTexture.set(30,60);
-						// if(mainchk == 9){
-						player1.set(30,60);
-						// }
-						// if(mainchk == 10){
-							player2.set(30,60);
-						// }
+						player.set(30,60);
 						// gSpriteSheetTexture.render( turtle_specs.x, turtle_specs.y,currentClip );
 						
-						player1.render(camera.x,camera.y,currentClip1);
-						player2.render(camera.x,camera.y,currentClip2);
+						player.render(camera.x,camera.y,currentClip);
 						}
 						else{
 						SDL_Rect* currentClip = &gYuluClips[yulu.frame];
@@ -2726,11 +2615,14 @@ int main( int argc, char* args[] )
 						drawTexture(professor1.getPosX()-3*mapTileSize-camera.x,professor1.getPosY()-5*mapTileSize/2-camera.y,(mapTileSize*13)/2,mapTileSize*13/2,255,255,255,50);
 						drawTexture(dog1.getPosX()-mapTileSize-camera.x,dog1.getPosY()-mapTileSize-camera.y,mapTileSize*3,mapTileSize*3,255,255,255,50);
 						SDL_Color white = {255,255,255,255};
-						
+						package.pickup(dropArea[pickupDestiny]);
+						package.drop();
+						package.render(camera.x,camera.y);
 						gYuluStandRectTexture.set(240,120);
 						gYuluStandSqTexture.set(100,100);
 						SDL_Point p ={0,0};
 						SDL_Point* point =&p;
+				
 						gYuluStandRectTexture.render(1110-camera.x,660-camera.y,NULL,-90,point);
 						gYuluStandRectTexture.set(210,105);
 						gYuluStandRectTexture.render(3705-camera.x,2325-camera.y);
@@ -2747,14 +2639,7 @@ int main( int argc, char* args[] )
 						}
 						playerScore.render();
 						quitButton.show();
-						bool nishant;
-						// if(mainchk == 9){
-						nishant = CheckCaught(player1);
-						// }
-						// if(mainchk == 10){
-						// 	nishant = CheckCaught(player2);
-						// }
-
+						bool nishant = CheckCaught();
 						if(nishant){
 							dogTextTexture.loadFromRenderedText("Ahhhh......",white);
 							dogTextTexture.render(gWindow.getWidth()/2-yuluText.getWidth()/2,gWindow.getHeight()-yuluText.getHeight()*4);
@@ -2805,8 +2690,7 @@ int main( int argc, char* args[] )
 
 
 
-					player1.changePos(50,10);
-					player2.changePos(20,10);
+					player.reset();
 					yulu.reset();
 					professor1.reset();
 					dog1.reset();
@@ -2834,7 +2718,14 @@ int main( int argc, char* args[] )
 					SDL_RenderPresent( gRenderer );
 
 					}
-				
+					// cout<<play<<endl;
+					Uint32 time = frameTime.getTicks();
+					
+					if(time<=33){
+						SDL_Delay(33-time);
+					}
+					cout<<frameTime.getTicks()<<endl;
+					frameTime.stop();
 				}
 			}
 		}
