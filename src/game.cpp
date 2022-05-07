@@ -3245,7 +3245,7 @@ int main(int argc, char *args[])
 
 						bg = {camera.x / 4, camera.y / 4, camera.w / 4, camera.h / 4};
 						quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
-						gBackgroundPlayTexture.loadFromFile("../assets/mapFinal.jpg");
+						gBackgroundPlayTexture.loadFromFile("../assets/mapMed1.jpg");
 						gBackgroundPlayTexture.set(gWindow.getWidth(), gWindow.getHeight());
 						gBackgroundPlayTexture.render(0, 0, &bg);
 
