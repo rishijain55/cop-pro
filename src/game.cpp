@@ -857,6 +857,7 @@ SDL_Renderer *gRenderer = NULL;
 
 // Scene textures
 LTexture gBackgroundStartScreenTexture;
+LTexture gBackgroundEndScreenTexture;
 LTexture gBackgroundPlayTexture;
 LTexture gSpriteSheetTexture;
 LTexture gYuluSheetTexture;
@@ -884,6 +885,7 @@ LTexture gPlayHover;
 LTexture gPlayDisplay;
 LTexture quitText;
 LTexture yuluText;
+LTexture Gameend;
 LTexture gHeartTexture;
 LTexture gCoinTexture;
 LTexture dropPoint;
@@ -903,6 +905,7 @@ LTexture gTreeTexture;
 LTexture gtextBox;
 LTexture dinoGameZone;
 ScoreCard playerScore;
+ScoreCard oppScore;
 LTimer frameTime;
 //Walking animation
 const int CAR_ANIMATION_FRAMES = 4;
@@ -934,6 +937,7 @@ bool onYulu1 = false;
 bool onYulu2 = false;
 int dinoCoinGain=0;
 SDL_Color white = {255, 255, 255, 255};
+SDL_Color black = {0, 0, 0, 0};
 
 const int WALKING_ANIMATION_FRAMES = 8;
 SDL_Rect gSpriteClips[WALKING_ANIMATION_FRAMES];
@@ -2662,6 +2666,64 @@ int Button::handle_events(SDL_Event &event, int playOrNot, int server, int befor
 						return 10;
 					}
 				}
+			
+						if(beforegame == 30){
+					if(server == 30){
+													const SDL_MessageBoxButtonData buttons[] = {
+									{ /* .flags, .buttonid, .text */        0, 0, "no" },
+									{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "yes" },
+									{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "cancel" },
+								};
+								const SDL_MessageBoxColorScheme colorScheme = {
+									{ /* .colors (.r, .g, .b) */
+										/* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+										{ 0,   0,   0 },
+										/* [SDL_MESSAGEBOX_COLOR_TEXT] */
+										{   255, 255,   255 },
+										/* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+										{ 0, 0,   0 },
+										/* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+										{   0,   0, 0 },
+										/* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+										{ 211,   211, 211 }
+									}
+								};
+								const SDL_MessageBoxData messageboxdata = {
+									SDL_MESSAGEBOX_INFORMATION, /* .flags */
+									NULL, /* .window */
+									"Confirmation", /* .title */
+									"Are you sure? You want to quit?", /* .message */
+									SDL_arraysize(buttons), /* .numbuttons */
+									buttons, /* .buttons */
+									&colorScheme /* .colorScheme */
+								};
+								int buttonid;
+								if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+									SDL_Log("error displaying message box");
+									
+								}
+								if (buttonid == -1) {
+									SDL_Log("no selection");
+								} else {
+									if(buttonid == 0){
+										SDL_Log("Selected No");
+										return 30;
+									}
+									if(buttonid == 1){
+										SDL_Log("Selected Yes");
+										return 31;
+
+									}
+									if(buttonid == 2){
+										SDL_Log("Cancel");
+										return 32;
+									}
+								}
+								
+					}
+				}
+					
+				
 			}
 		}
 		return 0;
@@ -2861,6 +2923,13 @@ bool loadMedia()
 		
 		success = false;
 	}
+	if (!gBackgroundEndScreenTexture.loadFromFile("endgamebg.png"))
+	{
+		printf("Failed to load background texture!\n");
+		
+		success = false;
+	}
+
 
 	if (!gMainbuilding.loadFromFile("../assets/mainBuilding.png"))
 	{
@@ -3256,6 +3325,7 @@ int *datarecv(char *arr, int noofdata)
 
 	return receiveddata;
 }
+bool gameover = false;
 
 int main(int argc, char *args[])
 {
@@ -3675,6 +3745,9 @@ int main(int argc, char *args[])
 				
 			while (!quit)
 			{
+				if(playerScore.health == 0){play = 400;}
+				if(playerScore.happiness == 0){play = 500;}
+				if(gameover){play = 600;}
 			if(hikeritr1 < 30){
 							hikeritr2 = 100000 -hikeritr1;
 						}
@@ -3737,6 +3810,24 @@ int main(int argc, char *args[])
 								yulu1.dir = -1;
 							}
 						}
+						if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_h)
+						{
+							playerScore.health = 0;
+						}
+							if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_z)
+						{
+							gameover = true;
+						}
+						if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_q)
+						{
+							playerScore.happiness = 0;
+							
+						}
+						if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f)
+						{
+							playerScore.money = 400;
+							
+						}
 			
 
 							if (!onYulu1)
@@ -3763,6 +3854,42 @@ int main(int argc, char *args[])
 						}
 
 						quitButton.handle_events(e, 2, 2, 2);
+					}
+					else if(play == 100){
+						if(quitButton.handle_events(e,100,30,30) == 31){
+							quit = true;
+							close();
+						}
+					}
+					else if(play == 200){
+						if(quitButton.handle_events(e,200,30,30) == 31){
+							quit = true;
+							close();
+						}
+					}
+					else if(play == 300){
+						if(quitButton.handle_events(e,300,30,30) == 31){
+							quit = true;
+							close();
+						}
+					}
+					else if(play == 400){
+						if(quitButton.handle_events(e,400,30,30) == 31){
+							quit = true;
+							close();
+						}
+					}
+					else if(play == 500){
+						if(quitButton.handle_events(e,500,30,30) == 31){
+							quit = true;
+							close();
+						}
+					}
+					else if(play == 600){
+						if(quitButton.handle_events(e,600,30,30) == 31){
+							quit = true;
+							close();
+						}
 					}
 					else if (play == 0)
 					{
@@ -3826,7 +3953,7 @@ int main(int argc, char *args[])
 					// Handle window events
 					gWindow.handleEvent(e);
 				}
-
+				cout << play << "THE MAIN PLAY OF THE SCREEN";
 				// Only draw when not minimized
 				if (!gWindow.isMinimized())
 				{
@@ -3839,120 +3966,156 @@ int main(int argc, char *args[])
 						if (mainchk == 9)
 						{
 
-    int *list = new int[8];
-                            list[0] = player1.getPosX();
-                            list[1] = player1.getPosY();
-                            list[2] = player1.frame;
-                            list[3] = onYulu1;
-                            list[4] = yulu1.getPosX();
-                            list[5] = yulu1.getPosY();
-                            list[6] = yulu1.frame;
-                            list[7] = play;
-                            //  list[3] =
-                            int *recvlist1 = new int[8];
+										                     int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+																					
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
 
-                            cout << "HI";
+                                                                                    cout << "HI";
 
-                            helloserv = datasend(list, 8);
+                                                                                    helloserv = datasend(list, 11);
 
-                            if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
-                            {
-                            }
-                            // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
 
-                            // }
-
-
-
-                        if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
-
-
+                                                                                    // }
 
 
 
-                            recvlist1 = datarecv(bufferserv, 8);
-                            hiker[hikeritr1] = recvlist1;
-
-
-                            hikeritr1++;
-                            bool checkflag = false;
-                            for (int i = 0; i < 8; i++)
-                            {
-                                /* code */
-                                if(recvlist1[i] != 0){
-                                    checkflag = checkflag || true;
-                                }
-                            }
-
-                            if(checkflag){
-                                if(hikeritr2 >30){
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
 
 
 
-                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
 
-                            player2.frame = hiker[hikeritr2][2];
-                            onYulu2 = hiker[hikeritr2][3];
-                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
-                            yulu2.frame = hiker[hikeritr2][6];
-                                }
-                            }
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+																						cout << "REACHING HERE";
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
 						}
 						if (mainchk == 10)
 						{
-   						int *list = new int[8];
-                            list[0] = player1.getPosX();
-                            list[1] = player1.getPosY();
-                            list[2] = player1.frame;
-                            list[3] = onYulu1;
-                            list[4] = yulu1.getPosX();
-                            list[5] = yulu1.getPosY();
-                            list[6] = yulu1.frame;
-                            list[7] = play;
+													                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
 
-                            hellocl = datasend(list, 8);
+                                                                                    hellocl = datasend(list, 11);
 
-                            send(sockcl, hellocl, strlen(hellocl), 0);
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
 
-                            valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
 
-                            int *recvlist2 = new int[8];
-                            recvlist2 = datarecv(buffercl, 8);
-                            hiker[hikeritr1] = recvlist2;
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
 
-                            hikeritr1++;
-
-
-                            bool checkflag = false;
-                            for (int i = 0; i < 8; i++)
-                            {
-                                /* code */
-                                if(recvlist2[i] != 0){
-                                    checkflag = checkflag || true;
-                                }
-                            }
-
-                            if(checkflag){
-
-                            char arrt[60] = {};
-                            if(hikeritr2 > 30){
+                                                                                    hikeritr1++;
 
 
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
 
-                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+                                                                                    if(checkflag){
 
-                            player2.frame = hiker[hikeritr2][2];
-                            onYulu2 = hiker[hikeritr2][3];
-                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
-                            yulu2.frame = hiker[hikeritr2][6];
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
 
-                            }
-                            // for (int i = 0; i < 60; i++)
-                            // {
-                            //     /* code */
-                            //     buffercl[i] = 0;
-                            // }
-                            }
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
 
 						}
 
@@ -4272,12 +4435,1680 @@ int main(int argc, char *args[])
 						// Update screen
 						SDL_RenderPresent(gRenderer);
 					}
-					else if(play == 3)
-					{
-						if (mainchk == 9)
-						{
+			 else if(play == 100){
+                        cout << "DIED DUE TO LOW HEALTH";
+                        gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                        Gameend.loadFromRenderedText("OPPONENT DIED DUE TO LOW HEALTH, YAY! YOU WIN", black);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
 
-    int *list = new int[8];
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+
+                                                                                SDL_RenderPresent(gRenderer);
+
+
+                    }
+                    else if(play == 200){
+                        gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("OPPONENT DIED DUE TO DEPRESSION, YAY! YOU WIN", black);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                SDL_RenderPresent(gRenderer);
+
+
+                    }
+                    else if(play == 300){
+                    if (playerScore.happiness > oppScore.happiness)
+                    {
+                        /* code */
+                                                                               gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                        Gameend.loadFromRenderedText("YOU ARE MORE HAPPIER THAN OPPONENT, YAY! YOU WIN", black);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                    SDL_RenderPresent(gRenderer);
+
+
+
+                    }
+                    else if(playerScore.happiness == oppScore.happiness){
+                            gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("BOTH PLAYERS HAVE EQUAL HAPPINESS, DRAW!", black);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                    SDL_RenderPresent(gRenderer);
+
+
+
+                    }
+                    else{
+                            gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("YOU ARE LESS HAPPY THAN OPPONENT, OOH! YOU LOSE", black);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                    SDL_RenderPresent(gRenderer);
+
+
+
+                    }
+
+                    }
+                    else if(play == 400){
+                        cout << "MAINPLAYER DIED";
+                        gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("YOU DIED DUE TO LOW HEALTH, YOU LOSE!", black);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                SDL_RenderPresent(gRenderer);
+
+
+                    }
+                    else if(play == 500){
+                        gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("YOU LOST YOUR HAPPINESS, TAKE SOME REST!", black);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                SDL_RenderPresent(gRenderer);
+
+
+                    }
+                    else if(play == 600){
+                    if(playerScore.happiness > oppScore.happiness){
+                            gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("YOU ARE MORE HAPPIER THAN OPPONENT, YAY! YOU WIN", black);
+                        // Gameend.render(gWindow.getWidth() / 2 - yuluText.getWidth() / 2, gWindow.getHeight() - yuluText.getHeight() * 4);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                    SDL_RenderPresent(gRenderer);
+
+
+
+                    }
+                    else if(playerScore.happiness == oppScore.happiness){
+                            gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("BOTH ARE EQUALLY HAPPY, DRAW", black);
+                        // Gameend.render(gWindow.getWidth() / 2 - Gameend.getWidth() / 2, gWindow.getHeight() - Gameend.getHeight() * 4);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                    SDL_RenderPresent(gRenderer);
+
+
+                    }
+                    else{
+                            gBackgroundEndScreenTexture.set(gWindow.getWidth(), gWindow.getHeight());
+                        gBackgroundEndScreenTexture.render(0, 0);
+                            Gameend.loadFromRenderedText("YOU ARE LESS HAPPY THAN OPPONENT, YAY! YOU LOSE", black);
+                        // Gameend.render(gWindow.getWidth() / 2 - yuluText.getWidth() / 2, gWindow.getHeight() - yuluText.getHeight() * 4);
+                        Gameend.set((gWindow.getWidth()*9)/10, gWindow.getHeight()/3);
+                        Gameend.render((gWindow.getWidth()*5)/100, gWindow.getHeight()/3);
+                        quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
+                        quitButton.show();
+                                                                                if (mainchk == 9)
+                                                                                {
+
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
+
+                                                                                    cout << "HI";
+
+                                                                                    helloserv = datasend(list, 11);
+
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+
+                                                                                    // }
+
+
+
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
+
+
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
+                                                                                    SDL_RenderPresent(gRenderer);
+
+
+                    }
+
+                    }
+                    else if(play == 3)
+                    {
+                        if (mainchk == 9)
+                        {
+
+    int *list = new int[11];
                             list[0] = player1.getPosX();
                             list[1] = player1.getPosY();
                             list[2] = player1.frame;
@@ -4286,12 +6117,15 @@ int main(int argc, char *args[])
                             list[5] = yulu1.getPosY();
                             list[6] = yulu1.frame;
                             list[7] = play;
+                            list[8] = gameover;
+                            list[9] = playerScore.health;
+                            list[10]= playerScore.happiness;
                             //  list[3] =
-                            int *recvlist1 = new int[8];
+                            int *recvlist1 = new int[11];
 
                             cout << "HI";
 
-                            helloserv = datasend(list, 8);
+                            helloserv = datasend(list, 11);
 
                             if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
                             {
@@ -4308,13 +6142,13 @@ int main(int argc, char *args[])
 
 
 
-                            recvlist1 = datarecv(bufferserv, 8);
+                            recvlist1 = datarecv(bufferserv, 11);
                             hiker[hikeritr1] = recvlist1;
 
 
                             hikeritr1++;
                             bool checkflag = false;
-                            for (int i = 0; i < 8; i++)
+                            for (int i = 0; i < 11; i++)
                             {
                                 /* code */
                                 if(recvlist1[i] != 0){
@@ -4333,12 +6167,27 @@ int main(int argc, char *args[])
                             onYulu2 = hiker[hikeritr2][3];
                             yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
                             yulu2.frame = hiker[hikeritr2][6];
+                            // oppScore.money = hiker[hikeritr2][8];
+                            oppScore.health = hiker[hikeritr2][9];
+                            oppScore.happiness = hiker[hikeritr2][10];
+                                if(hiker[hikeritr2][9] == 0){
+                               play = 100;  // died due to low health
+                                }
+                            if(hiker[hikeritr2][10] == 0)
+                            {
+                                play = 200; // died due to depression
+                            }
+                            if(hiker[hikeritr2][8]){
+                                play = 300;
+                            }
+
+
                                 }
                             }
-						}
-						if (mainchk == 10)
-						{
-   						int *list = new int[8];
+                        }
+                        if (mainchk == 10)
+                        {
+                           int *list = new int[11];
                             list[0] = player1.getPosX();
                             list[1] = player1.getPosY();
                             list[2] = player1.frame;
@@ -4347,22 +6196,25 @@ int main(int argc, char *args[])
                             list[5] = yulu1.getPosY();
                             list[6] = yulu1.frame;
                             list[7] = play;
+                            list[8] = gameover;
+                            list[9] = playerScore.health;
+                            list[10]= playerScore.happiness;
 
-                            hellocl = datasend(list, 8);
+                            hellocl = datasend(list, 11);
 
                             send(sockcl, hellocl, strlen(hellocl), 0);
 
                             valreadcl = read(sockcl, buffercl, 60);
 
-                            int *recvlist2 = new int[8];
-                            recvlist2 = datarecv(buffercl, 8);
+                            int *recvlist2 = new int[11];
+                            recvlist2 = datarecv(buffercl, 11);
                             hiker[hikeritr1] = recvlist2;
 
                             hikeritr1++;
 
 
                             bool checkflag = false;
-                            for (int i = 0; i < 8; i++)
+                            for (int i = 0; i < 11; i++)
                             {
                                 /* code */
                                 if(recvlist2[i] != 0){
@@ -4383,6 +6235,19 @@ int main(int argc, char *args[])
                             onYulu2 = hiker[hikeritr2][3];
                             yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
                             yulu2.frame = hiker[hikeritr2][6];
+                            // oppScore.money = hiker[hikeritr2][8];
+                            oppScore.health = hiker[hikeritr2][9];
+                            oppScore.happiness = hiker[hikeritr2][10];
+                            if(hiker[hikeritr2][9] == 0){
+                               play = 100;  // died due to low health
+                                }
+                            if(hiker[hikeritr2][10] == 0)
+                            {
+                                play = 200; // died due to depression
+                            }
+                            if(hiker[hikeritr2][8]){
+                                play = 300;
+                            }
 
                             }
                             // for (int i = 0; i < 60; i++)
@@ -4392,218 +6257,252 @@ int main(int argc, char *args[])
                             // }
                             }
 
-						}
-					gTreeTexture.set(1800,1080);
-					//Clear screen
-					SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-					SDL_RenderClear( gRenderer );
+                        }
+                    gTreeTexture.set(1800,1080);
+                    //Clear screen
+                    SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+                    SDL_RenderClear( gRenderer );
 
-					//Render current dinoFrame
-					
-					vert = vert + vert_velocity;
-					vert_velocity  = vert_velocity-g ;
-					
-					if(vert<=0){
-						
-						vert = 0;
-						vert_velocity = 0;
-						if(!(jumps%5)){
-							speed+=0.5;
-							jumps++;
-							g+=0.2;
-							startVel+=1;
-						}
-						
-					}
+                    //Render current dinoFrame
 
-					bool flag = 0;    
-					bool backflag = 0;
-					for(auto &it : backGloc){
-						it -= 8*speed;
-						gTreeTexture.render(  it,0 );
-						
-						if(it<=-1800)
-							backflag = 1;
-					}
-					SDL_Rect* currentClipMan = &gBouncingManClips[3- dinoFrame / 4 ];
-					gManTexture.render(  10, verticalloc-vert, currentClipMan );
-					for(auto &it : obstacles){
-						
-						it.x -= 8*speed;
-						gBoxDinoTexture.render(  it.x,it.y, Box );
-						if((it.x<=10+64 && it.x+50>=10+64 && it.y<=verticalloc+205-vert)||(it.x+50>=10 && it.x<=10 && it.y<=verticalloc+205-vert))
-							pause = true;
-						
-						if(it.x<=-50)
-							flag = 1;
-					}
-					
-					
-					j-=8.0*speed;
-					
-					
-					if(backg1loc<=-1800){
-						backg1loc = 0;
-						
-					}
-					if(backflag){
-						backGloc.pop_front();
-						backGloc.push_back(backGloc[1]+1800);
-					}
-					
-					if(flag){
-						dinoCoinGain+=4;
-						obstacles.pop_front();
+                    vert = vert + vert_velocity;
+                    vert_velocity  = vert_velocity-g ;
 
-					}
-					gCoinTexture.set(60,60);
-					gCoinTexture.render(100, 80);
-					string s = to_string(dinoCoinGain);
-					gMoneyTextTexture.loadFromRenderedText(s, gold);
-					float textHeight = 60;
-					float textWidth = textHeight * (gMoneyTextTexture.getWidth() / (1.0 * gMoneyTextTexture.getHeight()));
-					gMoneyTextTexture.set(textWidth, textHeight);
-					gMoneyTextTexture.set(textWidth,textHeight);
-					gMoneyTextTexture.render(200,80);
-					//Update screen
-					SDL_RenderPresent( gRenderer );
+                    if(vert<=0){
 
-					
-					//Go to next dinoFrame
-					++dinoFrame;
+                        vert = 0;
+                        vert_velocity = 0;
+                        if(!(jumps%5)){
+                            speed+=0.5;
+                            jumps++;
+                            g+=0.2;
+                            startVel+=1;
+                        }
 
-					//Cycle animation
-					if( dinoFrame / 4 >= BOUNCING_FRAMES )
-					{
-						dinoFrame = 0;
-					}
+                    }
 
-				}
+                    bool flag = 0;
+                    bool backflag = 0;
+                    for(auto &it : backGloc){
+                        it -= 8*speed;
+                        gTreeTexture.render(  it,0 );
+
+                        if(it<=-1800)
+                            backflag = 1;
+                    }
+                    SDL_Rect* currentClipMan = &gBouncingManClips[3- dinoFrame / 4 ];
+                    gManTexture.render(  10, verticalloc-vert, currentClipMan );
+                    for(auto &it : obstacles){
+
+                        it.x -= 8*speed;
+                        gBoxDinoTexture.render(  it.x,it.y, Box );
+                        if((it.x<=10+64 && it.x+50>=10+64 && it.y<=verticalloc+205-vert)||(it.x+50>=10 && it.x<=10 && it.y<=verticalloc+205-vert))
+                            pause = true;
+
+                        if(it.x<=-50)
+                            flag = 1;
+                    }
+
+
+                    j-=8.0*speed;
+
+
+                    if(backg1loc<=-1800){
+                        backg1loc = 0;
+
+                    }
+                    if(backflag){
+                        backGloc.pop_front();
+                        backGloc.push_back(backGloc[1]+1800);
+                    }
+
+                    if(flag){
+                        dinoCoinGain+=4;
+                        obstacles.pop_front();
+
+                    }
+                    gCoinTexture.set(60,60);
+                    gCoinTexture.render(100, 80);
+                    string s = to_string(dinoCoinGain);
+                    gMoneyTextTexture.loadFromRenderedText(s, gold);
+                    float textHeight = 60;
+                    float textWidth = textHeight * (gMoneyTextTexture.getWidth() / (1.0 * gMoneyTextTexture.getHeight()));
+                    gMoneyTextTexture.set(textWidth, textHeight);
+                    gMoneyTextTexture.set(textWidth,textHeight);
+                    gMoneyTextTexture.render(200,80);
+                    //Update screen
+                    SDL_RenderPresent( gRenderer );
+
+
+                    //Go to next dinoFrame
+                    ++dinoFrame;
+
+                    //Cycle animation
+                    if( dinoFrame / 4 >= BOUNCING_FRAMES )
+                    {
+                        dinoFrame = 0;
+                    }
+
+                }
         else if(play == 4 && !Carpause)
         {
           if(!playing){
             countingtime.start();
             playing =true;
           }
-					if (mainchk == 9)
-						{
+																  if (mainchk == 9)
+                                                                                {
 
-    int *list = new int[8];
-                            list[0] = player1.getPosX();
-                            list[1] = player1.getPosY();
-                            list[2] = player1.frame;
-                            list[3] = onYulu1;
-                            list[4] = yulu1.getPosX();
-                            list[5] = yulu1.getPosY();
-                            list[6] = yulu1.frame;
-                            list[7] = play;
-                            //  list[3] =
-                            int *recvlist1 = new int[8];
+                                                            int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+                                                                                    //  list[3] =
+                                                                                    int *recvlist1 = new int[11];
 
-                            cout << "HI";
+                                                                                    cout << "HI";
 
-                            helloserv = datasend(list, 8);
+                                                                                    helloserv = datasend(list, 11);
 
-                            if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
-                            {
-                            }
-                            // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
+                                                                                    if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                                                                                    {
+                                                                                    }
+                                                                                    // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
 
-                            // }
-
-
-
-                        if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
-
+                                                                                    // }
 
 
 
-
-                            recvlist1 = datarecv(bufferserv, 8);
-                            hiker[hikeritr1] = recvlist1;
-
-
-                            hikeritr1++;
-                            bool checkflag = false;
-                            for (int i = 0; i < 8; i++)
-                            {
-                                /* code */
-                                if(recvlist1[i] != 0){
-                                    checkflag = checkflag || true;
-                                }
-                            }
-
-                            if(checkflag){
-                                if(hikeritr2 >30){
+                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
 
 
 
-                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
-
-                            player2.frame = hiker[hikeritr2][2];
-                            onYulu2 = hiker[hikeritr2][3];
-                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
-                            yulu2.frame = hiker[hikeritr2][6];
-                                }
-                            }
-						}
-						if (mainchk == 10)
-						{
-   						int *list = new int[8];
-                            list[0] = player1.getPosX();
-                            list[1] = player1.getPosY();
-                            list[2] = player1.frame;
-                            list[3] = onYulu1;
-                            list[4] = yulu1.getPosX();
-                            list[5] = yulu1.getPosY();
-                            list[6] = yulu1.frame;
-                            list[7] = play;
-
-                            hellocl = datasend(list, 8);
-
-                            send(sockcl, hellocl, strlen(hellocl), 0);
-
-                            valreadcl = read(sockcl, buffercl, 60);
-
-                            int *recvlist2 = new int[8];
-                            recvlist2 = datarecv(buffercl, 8);
-                            hiker[hikeritr1] = recvlist2;
-
-                            hikeritr1++;
 
 
-                            bool checkflag = false;
-                            for (int i = 0; i < 8; i++)
-                            {
-                                /* code */
-                                if(recvlist2[i] != 0){
-                                    checkflag = checkflag || true;
-                                }
-                            }
+                                                                                    recvlist1 = datarecv(bufferserv, 11);
+                                                                                    hiker[hikeritr1] = recvlist1;
 
-                            if(checkflag){
 
-                            char arrt[60] = {};
-                            if(hikeritr2 > 30){
+                                                                                    hikeritr1++;
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist1[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+                                                                                        if(hikeritr2 >30){
 
 
 
-                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
 
-                            player2.frame = hiker[hikeritr2][2];
-                            onYulu2 = hiker[hikeritr2][3];
-                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
-                            yulu2.frame = hiker[hikeritr2][6];
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                        if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
 
-                            }
-                            // for (int i = 0; i < 60; i++)
-                            // {
-                            //     /* code */
-                            //     buffercl[i] = 0;
-                            // }
-                            }
 
-						}
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                if (mainchk == 10)
+                                                                                {
+                                                                                int *list = new int[11];
+                                                                                    list[0] = player1.getPosX();
+                                                                                    list[1] = player1.getPosY();
+                                                                                    list[2] = player1.frame;
+                                                                                    list[3] = onYulu1;
+                                                                                    list[4] = yulu1.getPosX();
+                                                                                    list[5] = yulu1.getPosY();
+                                                                                    list[6] = yulu1.frame;
+                                                                                    list[7] = play;
+                                                                                    list[8] = gameover;
+                                                                                    list[9] = playerScore.health;
+                                                                                    list[10]= playerScore.happiness;
+
+                                                                                    hellocl = datasend(list, 11);
+
+                                                                                    send(sockcl, hellocl, strlen(hellocl), 0);
+
+                                                                                    valreadcl = read(sockcl, buffercl, 60);
+
+                                                                                    int *recvlist2 = new int[11];
+                                                                                    recvlist2 = datarecv(buffercl, 11);
+                                                                                    hiker[hikeritr1] = recvlist2;
+
+                                                                                    hikeritr1++;
+
+
+                                                                                    bool checkflag = false;
+                                                                                    for (int i = 0; i < 11; i++)
+                                                                                    {
+                                                                                        /* code */
+                                                                                        if(recvlist2[i] != 0){
+                                                                                            checkflag = checkflag || true;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if(checkflag){
+
+                                                                                    char arrt[60] = {};
+                                                                                    if(hikeritr2 > 30){
+
+
+
+                                                                                    player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                                                                                    player2.frame = hiker[hikeritr2][2];
+                                                                                    onYulu2 = hiker[hikeritr2][3];
+                                                                                    yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                                                                                    yulu2.frame = hiker[hikeritr2][6];
+                                                                                    // oppScore.money = hiker[hikeritr2][8];
+                                                                                    oppScore.health = hiker[hikeritr2][9];
+                                                                                    oppScore.happiness = hiker[hikeritr2][10];
+                                                                                    if(hiker[hikeritr2][9] == 0){
+                                                                                    play = 100;  // died due to low health
+                                                                                        }
+                                                                                    if(hiker[hikeritr2][10] == 0)
+                                                                                    {
+                                                                                        play = 200; // died due to depression
+                                                                                    }
+                                                                                    if(hiker[hikeritr2][8]){
+                                                                                        play = 300;
+                                                                                    }
+
+                                                                                    }
+                                                                                    // for (int i = 0; i < 60; i++)
+                                                                                    // {
+                                                                                    //     /* code */
+                                                                                    //     buffercl[i] = 0;
+                                                                                    // }
+                                                                                    }
+
+                                                                                }
 
 				if(countingtime.getTicks()>=remainingtime){
 					if(travelled<5000){
