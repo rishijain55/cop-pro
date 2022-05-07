@@ -2991,20 +2991,20 @@ int main(int argc, char *args[])
 			dog1.changePos(2100, 2190);
 			// While application is running
     			int** hiker = new int*[100000];
-                int hikeritr1 = 10;
+                int hikeritr1 = 30;
                 int hikeritr2;
-                if(hikeritr1 < 10)
+                if(hikeritr1 < 30)
                  hikeritr2 = 100000 -hikeritr1;
                 else
                 hikeritr2 = hikeritr1 - 10;
 				
 			while (!quit)
 			{
-			if(hikeritr1 < 10){
+			if(hikeritr1 < 30){
 							hikeritr2 = 100000 -hikeritr1;
 						}
 							else{
-							hikeritr2 = hikeritr1 - 10;
+							hikeritr2 = hikeritr1 - 30;
 							}
 
 
@@ -3203,7 +3203,7 @@ int main(int argc, char *args[])
                             }
 
                             if(checkflag){
-                                if(hikeritr2 > 10){
+                                if(hikeritr2 >30){
 
 
 
@@ -3253,7 +3253,7 @@ int main(int argc, char *args[])
                             if(checkflag){
 
                             char arrt[60] = {};
-                            if(hikeritr2 > 10){
+                            if(hikeritr2 > 30){
 
 
 
@@ -3579,74 +3579,121 @@ int main(int argc, char *args[])
 					{
 						if (mainchk == 9)
 						{
-							int *list = new int[7];
-							list[0] = player1.getPosX();
-							list[1] = player1.getPosY();
-							list[2] = player1.frame;
-							list[3] = onYulu1;
-							list[4] = yulu1.getPosX();
-							list[5] = yulu1.getPosY();
-							list[6] = yulu1.frame;
-							//  list[3] =
 
-							helloserv = datasend(list, 7);
+    int *list = new int[8];
+                            list[0] = player1.getPosX();
+                            list[1] = player1.getPosY();
+                            list[2] = player1.frame;
+                            list[3] = onYulu1;
+                            list[4] = yulu1.getPosX();
+                            list[5] = yulu1.getPosY();
+                            list[6] = yulu1.frame;
+                            list[7] = play;
+                            //  list[3] =
+                            int *recvlist1 = new int[8];
 
-							if (send(new_socketserv, helloserv, strlen(helloserv), 0) >= 0)
-							{
-							}
-							valreadserv = read(new_socketserv, bufferserv, 60);
+                            cout << "HI";
 
-							int *recvlist1 = new int[7];
-							recvlist1 = datarecv(bufferserv, 7);
-						
+                            helloserv = datasend(list, 8);
 
-							player2.changePos(recvlist1[0], recvlist1[1]);
+                            if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                            {
+                            }
+                            // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
 
-							player2.frame = recvlist1[2];
-							onYulu2 = recvlist1[3];
-							yulu2.changePos(recvlist1[4], recvlist1[5]);
-							yulu2.frame = recvlist1[6];
-							// 		for (int i = 0; i < 60; i++)
-							// {
-							// 	/* code */
-							// 	bufferserv[i] = 0;
-							// }
+                            // }
+
+
+
+                        if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                            recvlist1 = datarecv(bufferserv, 8);
+                            hiker[hikeritr1] = recvlist1;
+
+
+                            hikeritr1++;
+                            bool checkflag = false;
+                            for (int i = 0; i < 8; i++)
+                            {
+                                /* code */
+                                if(recvlist1[i] != 0){
+                                    checkflag = checkflag || true;
+                                }
+                            }
+
+                            if(checkflag){
+                                if(hikeritr2 >30){
+
+
+
+                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                            player2.frame = hiker[hikeritr2][2];
+                            onYulu2 = hiker[hikeritr2][3];
+                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                            yulu2.frame = hiker[hikeritr2][6];
+                                }
+                            }
 						}
 						if (mainchk == 10)
 						{
-							int *list = new int[7];
-							list[0] = player1.getPosX();
-							list[1] = player1.getPosY();
-							list[2] = player1.frame;
-							list[3] = onYulu1;
-							list[4] = yulu1.getPosX();
-							list[5] = yulu1.getPosY();
-							list[6] = yulu1.frame;
+   						int *list = new int[8];
+                            list[0] = player1.getPosX();
+                            list[1] = player1.getPosY();
+                            list[2] = player1.frame;
+                            list[3] = onYulu1;
+                            list[4] = yulu1.getPosX();
+                            list[5] = yulu1.getPosY();
+                            list[6] = yulu1.frame;
+                            list[7] = play;
 
-							hellocl = datasend(list, 7);
+                            hellocl = datasend(list, 8);
 
-							send(sockcl, hellocl, strlen(hellocl), 0);
+                            send(sockcl, hellocl, strlen(hellocl), 0);
 
-							valreadcl = read(sockcl, buffercl, 60);
+                            valreadcl = read(sockcl, buffercl, 60);
 
-							int *recvlist2 = new int[7];
-							recvlist2 = datarecv(buffercl, 7);
-							char arrt[60] = {};
-							
-							
+                            int *recvlist2 = new int[8];
+                            recvlist2 = datarecv(buffercl, 8);
+                            hiker[hikeritr1] = recvlist2;
 
-							player2.changePos(recvlist2[0], recvlist2[1]);
-							cout << recvlist2[2];
+                            hikeritr1++;
 
-							player2.frame = recvlist2[2];
-							onYulu2 = recvlist2[3];
-							yulu2.changePos(recvlist2[4], recvlist2[5]);
-							yulu2.frame = recvlist2[6];
-							// for (int i = 0; i < 60; i++)
-							// {
-							// 	/* code */
-							// 	buffercl[i] = 0;
-							// }
+
+                            bool checkflag = false;
+                            for (int i = 0; i < 8; i++)
+                            {
+                                /* code */
+                                if(recvlist2[i] != 0){
+                                    checkflag = checkflag || true;
+                                }
+                            }
+
+                            if(checkflag){
+
+                            char arrt[60] = {};
+                            if(hikeritr2 > 30){
+
+
+
+                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                            player2.frame = hiker[hikeritr2][2];
+                            onYulu2 = hiker[hikeritr2][3];
+                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                            yulu2.frame = hiker[hikeritr2][6];
+
+                            }
+                            // for (int i = 0; i < 60; i++)
+                            // {
+                            //     /* code */
+                            //     buffercl[i] = 0;
+                            // }
+                            }
 
 						}
 					gTreeTexture.set(1800,1080);
@@ -3765,9 +3812,9 @@ int main(int argc, char *args[])
 					}
 					// cout<<play<<endl;
 					int time = frameTime.getTicks();
-					if (time <= 33)
+					if (time <= 15)
 					{
-						SDL_Delay(33 - time);
+						SDL_Delay(15 - time);
 					}
 					cout << frameTime.getTicks() << endl;
 					frameTime.stop();
