@@ -468,17 +468,22 @@ LTexture quitText;
 LTexture yuluText;
 LTexture gHeartTexture;
 LTexture gCoinTexture;
+LTexture dropPoint;
+LTexture pickupPoint;
 LTexture gPickupTexture;
 LTexture gBoxTexture;
 LTexture gDropTexture;
 LTexture gHappinessTexture;
 LTexture gMoneyTextTexture;
+LTexture gMainbuilding;
 const int BOUNCING_FRAMES = 4;
 SDL_Rect gBouncingManClips[ BOUNCING_FRAMES ];
 LTexture gManTexture;
 LTexture jumpGameTexture;
 LTexture gBoxDinoTexture;
 LTexture gTreeTexture;
+LTexture gtextBox;
+LTexture dinoGameZone;
 ScoreCard playerScore;
 LTimer frameTime;
 int yuluMoneyFrame=0;
@@ -561,12 +566,19 @@ void LPackage::render(int camX, int camY, SDL_Rect *clip)
 {
 	if (!pickedUp)
 	{
+		pickupPoint.loadFromFile("../assets/pickup.png");
+		pickupPoint.set(120,60);
+		pickupPoint.render(pickupPosX - camX-45, pickupPosY - camY-60);
+
+
 		gBoxTexture.set(30, 30);
 		gBoxTexture.render(pickupPosX - camX, pickupPosY - camY, clip);
 	}
 	else
 	{
-		drawTexture(dropPosX - camX, dropPosY - camY, mapTileSize / 2, mapTileSize / 2, 255, 255, 255, 255);
+		dropPoint.loadFromFile("../assets/dropPoint.png");
+		dropPoint.set(60,60);
+		dropPoint.render(dropPosX - camX, dropPosY - camY-60);
 	}
 }
 void LPackage ::pickup(string s)
@@ -580,7 +592,10 @@ void LPackage ::pickup(string s)
 
 			cout << "inreach" << endl;
 			gPickupTexture.loadFromRenderedText("Pick the box using RSHIFT. Deliver at " + s, white);
+		gtextBox.set(gPickupTexture.getWidth()+gPickupTexture.getHeight(),gPickupTexture.getHeight()+gPickupTexture.getHeight());
+		gtextBox.render(gWindow.getWidth() / 2 - gPickupTexture.getWidth() / 2 -gPickupTexture.getHeight()/2, gWindow.getHeight() - gPickupTexture.getHeight() * 4-gPickupTexture.getHeight()/2);
 			gPickupTexture.render((gWindow.getWidth() - gPickupTexture.getWidth()) / 2, (gWindow.getHeight() - gPickupTexture.getHeight() * 4));
+
 		}
 	}
 }
@@ -595,6 +610,8 @@ void LPackage ::drop()
 			cout << "inreach" << endl;
 
 			gDropTexture.loadFromRenderedText("Drop the box using RSHIFT ", white);
+		gtextBox.set(gDropTexture.getWidth()+gDropTexture.getHeight(),gDropTexture.getHeight()+gDropTexture.getHeight());
+		gtextBox.render(gWindow.getWidth() / 2 - gDropTexture.getWidth() / 2 -gDropTexture.getHeight()/2, gWindow.getHeight() - gDropTexture.getHeight() * 2-gDropTexture.getHeight()/2);
 			gDropTexture.render((gWindow.getWidth() - gDropTexture.getWidth()) / 2, (gWindow.getHeight() - gDropTexture.getHeight() * 2));
 		}
 	}
@@ -2179,8 +2196,13 @@ void displayDrink(int x,int y,int w, int h)
 {
 	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()-(mapTileSize*3)/4<=y+h)
 	{
+
 		drinkTexture.loadFromRenderedText("Buy Drink for 50 and increase happiness by 1(Press D)",white);
+		gtextBox.set(drinkTexture.getWidth()+drinkTexture.getHeight(),drinkTexture.getHeight()+drinkTexture.getHeight());
+		gtextBox.render(gWindow.getWidth() / 2 - drinkTexture.getWidth() / 2 -drinkTexture.getHeight()/2, gWindow.getHeight() - drinkTexture.getHeight() * 4-drinkTexture.getHeight()/2);
+
 		drinkTexture.render(gWindow.getWidth() / 2 - drinkTexture.getWidth() / 2, gWindow.getHeight() - drinkTexture.getHeight() * 4);
+
 	}
 }
 
@@ -2197,6 +2219,8 @@ void displayFood(int x,int y,int w, int h)
 	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()-(mapTileSize*3)/4<=y+h)
 	{
 		foodTexture.loadFromRenderedText("Buy Burger for 80  and increase happiness by 1 and health by 10(Press B)",white);
+		gtextBox.set(foodTexture.getWidth()+foodTexture.getHeight(),foodTexture.getHeight()+foodTexture.getHeight());
+		gtextBox.render(gWindow.getWidth() / 2 - foodTexture.getWidth() / 2 -foodTexture.getHeight()/2, gWindow.getHeight() - foodTexture.getHeight() * 2-foodTexture.getHeight()/2);
 		foodTexture.render(gWindow.getWidth() / 2 - foodTexture.getWidth() / 2, gWindow.getHeight() - foodTexture.getHeight() * 2);
 	}
 }
@@ -2220,6 +2244,9 @@ void displayGame(int x,int y,int w, int h)
 	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>=y - (mapTileSize*3)/4 && player1.getPosY()<=y+h)
 	{
 		jumpGameTexture.loadFromRenderedText("Play jump over the box- price =30 (Press P)",white);
+		gtextBox.set(jumpGameTexture.getWidth()+jumpGameTexture.getHeight(),jumpGameTexture.getHeight()+jumpGameTexture.getHeight());
+		
+		gtextBox.render(gWindow.getWidth() / 2 - jumpGameTexture.getWidth() / 2 -jumpGameTexture.getHeight()/2, gWindow.getHeight() - jumpGameTexture.getHeight() * 4-jumpGameTexture.getHeight()/2);
 		jumpGameTexture.render(gWindow.getWidth() / 2 - jumpGameTexture.getWidth() / 2, gWindow.getHeight() - jumpGameTexture.getHeight() * 4);
 	} 
 }
@@ -2272,6 +2299,11 @@ bool loadMedia()
 		printf( "Failed to load walking animation texture!\n" );
 		success = false;
 	}
+	if( !dinoGameZone.loadFromFile( "../assets/gamezone.png" ) )
+	{
+		printf( "Failed to load gamezone!\n" );
+		success = false;
+	}
 	gTreeTexture.set(1800,900);
 	gManTexture.set(64,205);
 	
@@ -2300,6 +2332,23 @@ bool loadMedia()
 	if (!gBackgroundStartScreenTexture.loadFromFile("../assets/gamebg.png"))
 	{
 		printf("Failed to load background texture!\n");
+		
+		success = false;
+	}
+
+	if (!gMainbuilding.loadFromFile("../assets/mainBuilding.png"))
+	{
+		printf("Failed to load main building!\n");
+		success = false;
+	}
+	if (!gBackgroundPlayTexture.loadFromFile("../assets/mapHigh.jpg") )
+	{
+		printf("Failed to load play background!\n");
+		success = false;
+	}
+	if (!gtextBox.loadFromFile("../assets/textBox.png"))
+	{
+		printf("Failed to load textBox!\n");
 		success = false;
 	}
 	if (!gProfessorTexture.loadFromFile("../assets/woman1.jpg"))
@@ -2904,7 +2953,7 @@ int main(int argc, char *args[])
 
 				// Convert IPv4 and IPv6 addresses from text to binary
 				// form
-				if (inet_pton(AF_INET, "127.0.0.1", &serv_addrcl.sin_addr) <= 0)
+				if (inet_pton(AF_INET, "10.184.32.171", &serv_addrcl.sin_addr) <= 0)
 				{
 					printf(
 						"\nInvalid address/ Address not supported \n");
@@ -2941,8 +2990,27 @@ int main(int argc, char *args[])
 			professor1.changePos(5940, 1020);
 			dog1.changePos(2100, 2190);
 			// While application is running
+    			int** hiker = new int*[100000];
+                int hikeritr1 = 10;
+                int hikeritr2;
+                if(hikeritr1 < 10)
+                 hikeritr2 = 100000 -hikeritr1;
+                else
+                hikeritr2 = hikeritr1 - 10;
+				
 			while (!quit)
 			{
+			if(hikeritr1 < 10){
+							hikeritr2 = 100000 -hikeritr1;
+						}
+							else{
+							hikeritr2 = hikeritr1 - 10;
+							}
+
+
+							if(hikeritr1 > 99999){
+								hikeritr1 = 0;
+							}
 				int singlepressPlayer = 0;
 				int singlepressYulu = 0;
 				frameTime.start();
@@ -3088,74 +3156,121 @@ int main(int argc, char *args[])
 
 						if (mainchk == 9)
 						{
-							int *list = new int[7];
-							list[0] = player1.getPosX();
-							list[1] = player1.getPosY();
-							list[2] = player1.frame;
-							list[3] = onYulu1;
-							list[4] = yulu1.getPosX();
-							list[5] = yulu1.getPosY();
-							list[6] = yulu1.frame;
-							//  list[3] =
 
-							helloserv = datasend(list, 7);
+    int *list = new int[8];
+                            list[0] = player1.getPosX();
+                            list[1] = player1.getPosY();
+                            list[2] = player1.frame;
+                            list[3] = onYulu1;
+                            list[4] = yulu1.getPosX();
+                            list[5] = yulu1.getPosY();
+                            list[6] = yulu1.frame;
+                            list[7] = play;
+                            //  list[3] =
+                            int *recvlist1 = new int[8];
 
-							if (send(new_socketserv, helloserv, strlen(helloserv), 0) >= 0)
-							{
-							}
-							valreadserv = read(new_socketserv, bufferserv, 60);
+                            cout << "HI";
 
-							int *recvlist1 = new int[7];
-							recvlist1 = datarecv(bufferserv, 7);
-						
+                            helloserv = datasend(list, 8);
 
-							player2.changePos(recvlist1[0], recvlist1[1]);
+                            if (send(new_socketserv, helloserv, strlen(helloserv), 0) < 0)
+                            {
+                            }
+                            // if( recv(new_socketserv, bufferserv, 60, NULL) < 0){
 
-							player2.frame = recvlist1[2];
-							onYulu2 = recvlist1[3];
-							yulu2.changePos(recvlist1[4], recvlist1[5]);
-							yulu2.frame = recvlist1[6];
-							// 		for (int i = 0; i < 60; i++)
-							// {
-							// 	/* code */
-							// 	bufferserv[i] = 0;
-							// }
+                            // }
+
+
+
+                        if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+
+
+
+
+
+                            recvlist1 = datarecv(bufferserv, 8);
+                            hiker[hikeritr1] = recvlist1;
+
+
+                            hikeritr1++;
+                            bool checkflag = false;
+                            for (int i = 0; i < 8; i++)
+                            {
+                                /* code */
+                                if(recvlist1[i] != 0){
+                                    checkflag = checkflag || true;
+                                }
+                            }
+
+                            if(checkflag){
+                                if(hikeritr2 > 10){
+
+
+
+                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                            player2.frame = hiker[hikeritr2][2];
+                            onYulu2 = hiker[hikeritr2][3];
+                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                            yulu2.frame = hiker[hikeritr2][6];
+                                }
+                            }
 						}
 						if (mainchk == 10)
 						{
-							int *list = new int[7];
-							list[0] = player1.getPosX();
-							list[1] = player1.getPosY();
-							list[2] = player1.frame;
-							list[3] = onYulu1;
-							list[4] = yulu1.getPosX();
-							list[5] = yulu1.getPosY();
-							list[6] = yulu1.frame;
+   						int *list = new int[8];
+                            list[0] = player1.getPosX();
+                            list[1] = player1.getPosY();
+                            list[2] = player1.frame;
+                            list[3] = onYulu1;
+                            list[4] = yulu1.getPosX();
+                            list[5] = yulu1.getPosY();
+                            list[6] = yulu1.frame;
+                            list[7] = play;
 
-							hellocl = datasend(list, 7);
+                            hellocl = datasend(list, 8);
 
-							send(sockcl, hellocl, strlen(hellocl), 0);
+                            send(sockcl, hellocl, strlen(hellocl), 0);
 
-							valreadcl = read(sockcl, buffercl, 60);
+                            valreadcl = read(sockcl, buffercl, 60);
 
-							int *recvlist2 = new int[7];
-							recvlist2 = datarecv(buffercl, 7);
-							char arrt[60] = {};
-							
-							
+                            int *recvlist2 = new int[8];
+                            recvlist2 = datarecv(buffercl, 8);
+                            hiker[hikeritr1] = recvlist2;
 
-							player2.changePos(recvlist2[0], recvlist2[1]);
-							cout << recvlist2[2];
+                            hikeritr1++;
 
-							player2.frame = recvlist2[2];
-							onYulu2 = recvlist2[3];
-							yulu2.changePos(recvlist2[4], recvlist2[5]);
-							yulu2.frame = recvlist2[6];
-							// for (int i = 0; i < 60; i++)
-							// {
-							// 	/* code */
-							// 	buffercl[i] = 0;
-							// }
+
+                            bool checkflag = false;
+                            for (int i = 0; i < 8; i++)
+                            {
+                                /* code */
+                                if(recvlist2[i] != 0){
+                                    checkflag = checkflag || true;
+                                }
+                            }
+
+                            if(checkflag){
+
+                            char arrt[60] = {};
+                            if(hikeritr2 > 10){
+
+
+
+                            player2.changePos(hiker[hikeritr2][0], hiker[hikeritr2][1]);
+
+                            player2.frame = hiker[hikeritr2][2];
+                            onYulu2 = hiker[hikeritr2][3];
+                            yulu2.changePos(hiker[hikeritr2][4], hiker[hikeritr2][5]);
+                            yulu2.frame = hiker[hikeritr2][6];
+
+                            }
+                            // for (int i = 0; i < 60; i++)
+                            // {
+                            //     /* code */
+                            //     buffercl[i] = 0;
+                            // }
+                            }
 
 						}
 
@@ -3245,9 +3360,11 @@ int main(int argc, char *args[])
 
 						bg = {camera.x / 4, camera.y / 4, camera.w / 4, camera.h / 4};
 						quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
-						gBackgroundPlayTexture.loadFromFile("../assets/mapMed1.jpg");
+
 						gBackgroundPlayTexture.set(gWindow.getWidth(), gWindow.getHeight());
-						gBackgroundPlayTexture.render(0, 0, &bg);
+						gMainbuilding.set(gWindow.getWidth(), gWindow.getHeight());
+						gBackgroundPlayTexture.render(0, 0, &camera);
+						
 
 						// //for marking where temp is set to 1
 						curposX = player1.getPosX();
@@ -3272,6 +3389,7 @@ int main(int argc, char *args[])
 								}
 							}
 						}
+
 
 						if (!onYulu1)
 						{
@@ -3340,16 +3458,15 @@ int main(int argc, char *args[])
 
 						SDL_Rect *DogClip = &gDogClips[dog1.frame];
 						dog1.render(camera.x, camera.y, DogClip);
-
+						gMainbuilding.render(0,0,&bg);
 						drawTexture(professor1.getPosX() - 3 * mapTileSize - camera.x, professor1.getPosY() - 5 * mapTileSize / 2 - camera.y, (mapTileSize * 13) / 2, mapTileSize * 13 / 2, 255, 255, 255, 50);
 						drawTexture(dog1.getPosX() - mapTileSize - camera.x, dog1.getPosY() - mapTileSize - camera.y, mapTileSize * 3, mapTileSize * 3, 255, 255, 255, 50);
 						displayDrink(1500,1270,mapTileSize,mapTileSize*4);
 						displayFood(1500,1270,mapTileSize,mapTileSize*4);
-						displayGame(2850,2940,mapTileSize,mapTileSize);
+						displayGame(2820,2910,mapTileSize*2,mapTileSize*2);
+						dinoGameZone.render(2820-camera.x,2910-camera.y);
 						// SDL_Color white = {255, 255, 255, 255};
-						package.pickup(dropArea[pickupDestiny]);
-						package.drop();
-						package.render(camera.x, camera.y);
+
 						gYuluStandRectTexture.set(240, 120);
 						gYuluStandSqTexture.set(100, 100);
 						SDL_Point p = {0, 0};
@@ -3368,11 +3485,19 @@ int main(int argc, char *args[])
 						if (((curposX >= 1110 && curposX <= 1200) && (curposY >= 390 && curposY <= 660)) || ((curposX >= 540 && curposX <= 840) && (curposY >= 930 && curposY <= 1020)) || ((curposX >= 3690 && curposX <= 3900) && (curposY >= 2280 && curposY <= 2400)) || ((curposX >= 6450 && curposX <= 6540) && (curposY >= 30 && curposY <= 480)) || ((curposX >= 6690 && curposX <= 6780) && (curposY >= 1560 && curposY <= 1680)) || ((curposX >= 1890 && curposX <= 2040) && (curposY >= 2880 && curposY <= 3060)))
 						{
 							yuluText.loadFromRenderedText("Press RSHIFT for YULU", white);
+							gtextBox.set(yuluText.getWidth()+yuluText.getHeight(),yuluText.getHeight()+yuluText.getHeight());
+							gtextBox.render(gWindow.getWidth() / 2 - yuluText.getWidth() / 2 -yuluText.getHeight()/2, gWindow.getHeight() - yuluText.getHeight() * 4-yuluText.getHeight()/2);
 							yuluText.render(gWindow.getWidth() / 2 - yuluText.getWidth() / 2, gWindow.getHeight() - yuluText.getHeight() * 4);
 
-							yuluText.loadFromRenderedText("Remember", white);
+							yuluText.loadFromRenderedText("Remember 1 coin for 1 second", white);
+							gtextBox.set(yuluText.getWidth()+yuluText.getHeight(),yuluText.getHeight()+yuluText.getHeight());
+							gtextBox.render(gWindow.getWidth() / 2 - yuluText.getWidth() / 2 -yuluText.getHeight()/2, gWindow.getHeight() - yuluText.getHeight() * 7-yuluText.getHeight()/2);
 							yuluText.render(gWindow.getWidth() / 2 - yuluText.getWidth() / 2, gWindow.getHeight() - yuluText.getHeight() * 7);
 						}
+						package.pickup(dropArea[pickupDestiny]);
+						package.drop();
+						package.render(camera.x, camera.y);
+
 						playerScore.render();
 						quitButton.show();
 						bool nishant = CheckCaught();
