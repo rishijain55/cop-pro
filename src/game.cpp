@@ -3629,7 +3629,7 @@ int main(int argc, char *args[])
 			struct sockaddr_in addressserv;
 			int optserv = 1;
 			int addrlenserv = sizeof(addressserv);
-			char bufferserv[60] = {0};
+			char bufferserv[1024] = {0};
 			char *helloserv = "Hello from server";
 
 			if (mainchk == 9)
@@ -3673,7 +3673,7 @@ int main(int argc, char *args[])
 					perror("accept");
 					exit(EXIT_FAILURE);
 				}
-				valreadserv = read(new_socketserv, bufferserv, 60);
+				valreadserv = read(new_socketserv, bufferserv, 1024);
 				printf("%s\n", bufferserv);
 				send(new_socketserv, helloserv, strlen(helloserv), 0);
 				printf("Hello message sent\n");
@@ -3682,7 +3682,7 @@ int main(int argc, char *args[])
 			int sockcl = 0, valreadcl;
 			struct sockaddr_in serv_addrcl;
 			char *hellocl = "Hello from client";
-			char buffercl[60] = {0};
+			char buffercl[1024] = {0};
 
 			if (mainchk == 10)
 			{
@@ -3712,7 +3712,7 @@ int main(int argc, char *args[])
 				}
 				send(sockcl, hellocl, strlen(hellocl), 0);
 				printf("Hello message sent\n");
-				valreadcl = read(sockcl, buffercl, 60);
+				valreadcl = read(sockcl, buffercl, 1024);
 				printf("%s\n", buffercl);
 			}
 
@@ -3771,10 +3771,10 @@ int main(int argc, char *args[])
 					if (play == 1)
 					{
 						package.handleEvent(e);
-						if(isPlayerInside(1500,1270,mapTileSize,mapTileSize*4) && isPlayerInside(3180,1590,240,180)&&isPlayerInside(3360,1770,240,240)&&isPlayerInside(3180,1920,180,60)&&isPlayerInside(5760,1050,120,240)
-){
+						if(isPlayerInside(1500,1270,mapTileSize,mapTileSize*4) || isPlayerInside(3180,1590,240,180)||isPlayerInside(3360,1770,240,240)||isPlayerInside(3180,1920,180,60)||isPlayerInside(5760,1050,120,240)){
 							buyDrink(e);
 							buyFood(e);
+							cout<<"\nKHANA KHALO\n"<<endl;
 						}
 						if (isPlayerInside(2850,2940,mapTileSize,mapTileSize))
 						{
@@ -3854,8 +3854,10 @@ int main(int argc, char *args[])
 							}
 							player1.changePos(yulu1.getPosX(), yulu1.getPosY());
 						}
-
-						quitButton.handle_events(e, 2, 2, 2);
+						if(
+						quitButton.handle_events(e, 1, 30, 30)==31){
+							quit = true;
+						}
 					}
 					else if(play == 100){
 						if(quitButton.handle_events(e,100,30,30) == 31){
@@ -4009,7 +4011,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -4078,7 +4080,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -4098,7 +4100,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -4231,7 +4233,7 @@ int main(int argc, char *args[])
 						// //for marking where temparr is set to 1
 						curposX = player1.getPosX();
 						curposY = player1.getPosY();
-						// cout << curposX << " " << curposY << endl;
+						cout << curposX << " " << curposY << endl;
 						// row = mapElement(curposX,curposY)/xNoSquares;
 						// col = mapElement(curposX,curposY)%xNoSquares;
 						// cout<<row<<" "<<col<<endl;
@@ -4492,7 +4494,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -4560,7 +4562,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -4580,7 +4582,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -4660,7 +4662,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -4728,7 +4730,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -4748,7 +4750,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -4831,7 +4833,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -4899,7 +4901,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -4919,7 +4921,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -4997,7 +4999,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -5065,7 +5067,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -5085,7 +5087,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -5163,7 +5165,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -5231,7 +5233,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -5251,7 +5253,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -5333,7 +5335,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -5401,7 +5403,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -5421,7 +5423,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -5499,7 +5501,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -5567,7 +5569,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -5587,7 +5589,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -5667,7 +5669,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -5735,7 +5737,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -5755,7 +5757,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -5834,7 +5836,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -5902,7 +5904,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -5922,7 +5924,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -6000,7 +6002,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -6068,7 +6070,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -6088,7 +6090,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
@@ -6161,7 +6163,7 @@ int main(int argc, char *args[])
 
 
 
-                        if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                        if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -6229,7 +6231,7 @@ int main(int argc, char *args[])
 
                             send(sockcl, hellocl, strlen(hellocl), 0);
 
-                            valreadcl = read(sockcl, buffercl, 60);
+                            valreadcl = read(sockcl, buffercl, 1024);
 
                             int *recvlist2 = new int[11];
                             recvlist2 = datarecv(buffercl, 11);
@@ -6249,7 +6251,7 @@ int main(int argc, char *args[])
 
                             if(checkflag){
 
-                            char arrt[60] = {};
+                            char arrt[1024] = {};
                             if(hikeritr2 > 30){
 
 
@@ -6406,7 +6408,7 @@ int main(int argc, char *args[])
 
 
 
-                                                                                if (read(new_socketserv, bufferserv, 60) < 0){cout << "NO PROPER DATA";}
+                                                                                if (read(new_socketserv, bufferserv, 1024) < 0){cout << "NO PROPER DATA";}
 
 
 
@@ -6474,7 +6476,7 @@ int main(int argc, char *args[])
 
                                                                                     send(sockcl, hellocl, strlen(hellocl), 0);
 
-                                                                                    valreadcl = read(sockcl, buffercl, 60);
+                                                                                    valreadcl = read(sockcl, buffercl, 1024);
 
                                                                                     int *recvlist2 = new int[11];
                                                                                     recvlist2 = datarecv(buffercl, 11);
@@ -6494,7 +6496,7 @@ int main(int argc, char *args[])
 
                                                                                     if(checkflag){
 
-                                                                                    char arrt[60] = {};
+                                                                                    char arrt[1024] = {};
                                                                                     if(hikeritr2 > 30){
 
 
