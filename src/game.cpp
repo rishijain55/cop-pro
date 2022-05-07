@@ -123,7 +123,7 @@ int pickupY[] = {720, 540, 2790, 420, 2940};
 int dropX[] = {7440, 7200, 5400, 6060, 4920};
 int dropY[] = {360, 1380, 2730, 1080, 1380};
 string dropArea[] = {"Himadri", "LHC", "Hockey Ground", "Library", "SIT"};
-
+//  SDL_Color white ={255,255,255,255};
 // Texture wrapper class
 class LTexture
 {
@@ -226,7 +226,7 @@ public:
 	bool wasPlayerMoving = false;
 
 	// Maximum axis velocity of the dot
-	static const int PLAYER_VEL = 30;
+	static const int PLAYER_VEL = 15;
 
 	// Initializes the variables
 	Player();
@@ -405,8 +405,6 @@ public:
 	void changeHappiness(int offset);
 	void render();
 	void reset();
-
-private:
 	int health, money, happiness;
 };
 
@@ -448,6 +446,7 @@ LTexture gYuluSheetTexture;
 LTexture gYuluStandRectTexture;
 LTexture gYuluStandSqTexture;
 LTexture ghelpsectionbg;
+LTexture drinkTexture;
 LTexture gProfessorTexture;
 LTexture gDogTexture;
 LTexture dogTextTexture;
@@ -473,10 +472,12 @@ LTexture gHappinessTexture;
 LTexture gMoneyTextTexture;
 ScoreCard playerScore;
 LTimer frameTime;
+int yuluMoneyFrame=0;
+int yuluMoneyFrameLimit =30;
 int mapTileSize = 60;
 int xNoSquares = 140;
 int yNoSquares = 80;
-int playerHoldMoveSpeed = 6;
+int playerHoldMoveSpeed = 2;
 int yuluHoldMoveSpeed = 6;
 int play = 2;
 int professorFrame = 0;
@@ -561,7 +562,7 @@ void LPackage::render(int camX, int camY, SDL_Rect *clip)
 void LPackage ::pickup(string s)
 {
 
-	SDL_Color white = {255, 255, 255, 255};
+	// SDL_Color white = {255, 255, 255, 255};
 	if (!pickedUp)
 	{
 		if (player1.getPosX() >= pickupPosX - mapTileSize / 2 && player1.getPosX() < pickupPosX + mapTileSize && player1.getPosY() >= pickupPosY - mapTileSize / 2 && player1.getPosY() < pickupPosY + mapTileSize)
@@ -940,11 +941,12 @@ bool Player ::collided()
 {
 	bool collided = false;
 	// collided = collided||wallCollision(mPosX,mPosY);
-	collided = collided || (wallCollision(mPosX, mPosY + PLAYER_HEIGHT / 2)) && (mPosY % (mapTileSize / 2) == 0);
+	collided = collided || (wallCollision(mPosX, mPosY + 45));
+	collided = collided || (wallCollision(mPosX+15, mPosY + 45));
 	// collided = collided||(wallCollision(mPosX+PLAYER_WIDTH,mPosY)&&(mPosX%mapTileSize==0));
-	collided = collided || (wallCollision(mPosX + PLAYER_WIDTH, mPosY + PLAYER_HEIGHT / 2) && (mPosY % (mapTileSize / 2) == 0) && (mPosX % (mapTileSize / 2) != 0));
-	collided = collided || (wallCollision(mPosX, mPosY + PLAYER_HEIGHT) && (mPosY % (mapTileSize / 2) != 0));
-	collided = collided || (wallCollision(mPosX + PLAYER_WIDTH, mPosY + PLAYER_HEIGHT) && (mPosY % (mapTileSize / 2) != 0));
+	// collided = collided || (wallCollision(mPosX + PLAYER_WIDTH, mPosY + PLAYER_HEIGHT / 2) && (mPosY % (mapTileSize / 2) == 0) && (mPosX % (mapTileSize / 2) != 0));
+	// collided = collided || (wallCollision(mPosX, mPosY + PLAYER_HEIGHT) && (mPosY % (mapTileSize / 2) != 0));
+	// collided = collided || (wallCollision(mPosX + PLAYER_WIDTH, mPosY + PLAYER_HEIGHT) && (mPosY % (mapTileSize / 2) != 0));
 	return collided;
 }
 
@@ -1562,9 +1564,9 @@ bool Yulu ::collided()
 	// return collided;
 
 	collided = collided || wallCollision(mPosX, mPosY);
-	collided = collided || (wallCollision(mPosX, mPosY + YULU_HEIGHT / 2));
-	collided = collided || (wallCollision(mPosX + YULU_WIDTH / 2, mPosY + YULU_HEIGHT / 2));
-	collided = collided || (wallCollision(mPosX + YULU_WIDTH / 2, mPosY));
+	collided = collided || (wallCollision(mPosX, mPosY + YULU_WIDTH/2));
+	collided = collided || (wallCollision(mPosX + YULU_WIDTH/2, mPosY + YULU_WIDTH/2));
+	collided = collided || (wallCollision(mPosX + YULU_WIDTH/2, mPosY));
 	return collided;
 }
 
@@ -2156,6 +2158,32 @@ void Button::show()
 	ButtonNew.render(box.x, box.y);
 }
 
+bool isPlayerInside(int x,int y,int w,int h ){
+	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()<=y+h+(mapTileSize*3)/4)
+	{
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
+void displayDrink(int x,int y,int w, int h)
+{
+	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()<=y+h+(mapTileSize*3)/4)
+	{
+		drinkTexture.loadFromRenderedText("Buy Drink for 50 and increase happiness by 1",white);
+		drinkTexture.render(gWindow.getWidth() / 2 - drinkTexture.getWidth() / 2, gWindow.getHeight() - drinkTexture.getHeight() * 4);
+	}
+}
+
+void buyDrink(SDL_Event& e){
+	if(e.type==SDL_KEYDOWN && e.key.keysym.sym == SDLK_d && playerScore.money>=50 ){
+		playerScore.changeHappiness(1);
+		playerScore.changeMoney(-50);
+	}
+}
+
 bool loadMedia()
 {
 	// Loading success flag
@@ -2405,7 +2433,7 @@ void close()
 bool CheckCaught()
 {
 	bool caught = false;
-	SDL_Color white = {255, 255, 255, 255};
+	// SDL_Color white = {255, 255, 255, 255};
 	if (player1.getPosX() >= professor1.getPosX() - 3 * mapTileSize && player1.getPosX() < professor1.getPosX() + mapTileSize * 7 / 2 && player1.getPosY() >= professor1.getPosY() - 3 * mapTileSize && player1.getPosY() < professor1.getPosY() + mapTileSize * 4)
 	{
 		caught = true;
@@ -2637,7 +2665,7 @@ int main(int argc, char *args[])
 							// start screen
 
 							player1.changePos(30, 0);
-							player2.changePos(70, 0);
+							player2.changePos(90, 0);
 							yulu1.reset();
 							professor1.reset();
 							dog1.reset();
@@ -2741,7 +2769,7 @@ int main(int argc, char *args[])
 
 				// Convert IPv4 and IPv6 addresses from text to binary
 				// form
-				if (inet_pton(AF_INET, "10.184.7.132", &serv_addrcl.sin_addr) <= 0)
+				if (inet_pton(AF_INET, "127.0.0.1", &serv_addrcl.sin_addr) <= 0)
 				{
 					printf(
 						"\nInvalid address/ Address not supported \n");
@@ -2790,7 +2818,9 @@ int main(int argc, char *args[])
 					if (play == 1)
 					{
 						package.handleEvent(e);
-
+						if(isPlayerInside(1500,1270,mapTileSize,mapTileSize*4)){
+							buyDrink(e);
+						}
 						if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RSHIFT)
 						{
 							if (((curposX >= 1110 && curposX <= 1200) && (curposY >= 390 && curposY <= 660)) || ((curposX >= 540 && curposX <= 840) && (curposY >= 930 && curposY <= 1020)) || ((curposX >= 3690 && curposX <= 3900) && (curposY >= 2280 && curposY <= 2400)) || ((curposX >= 6450 && curposX <= 6540) && (curposY >= 30 && curposY <= 480)) || ((curposX >= 6690 && curposX <= 6780) && (curposY >= 1560 && curposY <= 1680)) || ((curposX >= 1890 && curposX <= 2040) && (curposY >= 2880 && curposY <= 3060)))
@@ -2967,6 +2997,10 @@ int main(int argc, char *args[])
 						}
 						else if (onYulu1)
 						{
+							if(yuluMoneyFrame==yuluMoneyFrameLimit-1){
+								playerScore.changeMoney(-1);
+							}
+							yuluMoneyFrame=(yuluMoneyFrame+1)%yuluMoneyFrameLimit;
 							if (!singlepressYulu)
 							{
 								yulu1.handleEvent();
@@ -3136,7 +3170,8 @@ int main(int argc, char *args[])
 
 						drawTexture(professor1.getPosX() - 3 * mapTileSize - camera.x, professor1.getPosY() - 5 * mapTileSize / 2 - camera.y, (mapTileSize * 13) / 2, mapTileSize * 13 / 2, 255, 255, 255, 50);
 						drawTexture(dog1.getPosX() - mapTileSize - camera.x, dog1.getPosY() - mapTileSize - camera.y, mapTileSize * 3, mapTileSize * 3, 255, 255, 255, 50);
-						SDL_Color white = {255, 255, 255, 255};
+						displayDrink(1500,1270,mapTileSize,mapTileSize*4);
+						// SDL_Color white = {255, 255, 255, 255};
 						package.pickup(dropArea[pickupDestiny]);
 						package.drop();
 						package.render(camera.x, camera.y);
@@ -3213,8 +3248,8 @@ int main(int argc, char *args[])
 					{
 						// start screen
 
-						player1.changePos(50, 10);
-						player2.changePos(20, 10);
+						player1.changePos(60, 30);
+						player2.changePos(30, 60);
 						yulu1.reset();
 						yulu2.reset();
 						professor1.reset();
