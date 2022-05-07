@@ -7,7 +7,9 @@
 #include <sstream>
 #include <fstream>
 #include <SDL2/SDL_mixer.h>
-
+#include<deque>
+#include<utility>
+#include<thread>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -471,6 +473,12 @@ LTexture gBoxTexture;
 LTexture gDropTexture;
 LTexture gHappinessTexture;
 LTexture gMoneyTextTexture;
+const int BOUNCING_FRAMES = 4;
+SDL_Rect gBouncingManClips[ BOUNCING_FRAMES ];
+LTexture gManTexture;
+LTexture jumpGameTexture;
+LTexture gBoxDinoTexture;
+LTexture gTreeTexture;
 ScoreCard playerScore;
 LTimer frameTime;
 int yuluMoneyFrame=0;
@@ -488,6 +496,7 @@ int YuluFrame = 0;
 int pickupDestiny = 0;
 bool onYulu1 = false;
 bool onYulu2 = false;
+int dinoCoinGain=0;
 SDL_Color white = {255, 255, 255, 255};
 
 const int WALKING_ANIMATION_FRAMES = 8;
@@ -661,14 +670,14 @@ void ScoreCard::changeHappiness(int offset)
 		happiness = 0;
 	}
 }
-
+SDL_Color gold = {255, 215, 0, 255};
 void ScoreCard ::render()
 {
 	// drawTexture(0,0,gWindow.getWidth()/10,gWindow.getHeight()/10,0,255,255,200);
 	gHappinessTexture.set(30, 30);
 	gHeartTexture.set(30, 30);
 	gCoinTexture.set(30, 30);
-	SDL_Color gold = {255, 215, 0, 255};
+	
 	string moneyString = to_string(money);
 	int thickness = 3;
 	float healthWidth = 200 * ((health * 1.0) / healthLimit);
@@ -687,6 +696,7 @@ void ScoreCard ::render()
 	drawBorder(45, 45, 200, 20, thickness, 255, 255, 255, 255);
 	gHeartTexture.render(5, 0);
 	gCoinTexture.render(5, 80);
+	
 	gHappinessTexture.render(5, 40);
 	gMoneyTextTexture.render(45, 80);
 }
@@ -2156,7 +2166,7 @@ void Button::show()
 }
 
 bool isPlayerInside(int x,int y,int w,int h ){
-	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()<=y+h+(mapTileSize*3)/4)
+	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y-(mapTileSize*3)/4 && player1.getPosY()<=y+h)
 	{
 		return true;
 	}
@@ -2167,12 +2177,13 @@ bool isPlayerInside(int x,int y,int w,int h ){
 
 void displayDrink(int x,int y,int w, int h)
 {
-	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()<=y+h+(mapTileSize*3)/4)
+	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()-(mapTileSize*3)/4<=y+h)
 	{
 		drinkTexture.loadFromRenderedText("Buy Drink for 50 and increase happiness by 1(Press D)",white);
 		drinkTexture.render(gWindow.getWidth() / 2 - drinkTexture.getWidth() / 2, gWindow.getHeight() - drinkTexture.getHeight() * 4);
 	}
 }
+
 
 void buyDrink(SDL_Event& e){
 	if(e.type==SDL_KEYDOWN && e.key.keysym.sym == SDLK_d && playerScore.money>=50 ){
@@ -2183,7 +2194,7 @@ void buyDrink(SDL_Event& e){
 
 void displayFood(int x,int y,int w, int h)
 {
-	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()<=y+h+(mapTileSize*3)/4)
+	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>y && player1.getPosY()-(mapTileSize*3)/4<=y+h)
 	{
 		foodTexture.loadFromRenderedText("Buy Burger for 80  and increase happiness by 1 and health by 10(Press B)",white);
 		foodTexture.render(gWindow.getWidth() / 2 - foodTexture.getWidth() / 2, gWindow.getHeight() - foodTexture.getHeight() * 2);
@@ -2197,6 +2208,21 @@ void buyFood(SDL_Event& e){
 		playerScore.changeMoney(-80);
 	}
 }
+void playGame(SDL_Event& e){
+	if(e.type==SDL_KEYDOWN && e.key.keysym.sym == SDLK_p && playerScore.money>=20 ){
+		playerScore.changeMoney(-20);
+		play =3;
+	}
+}
+
+void displayGame(int x,int y,int w, int h)
+{
+	if(player1.getPosX()>=x && player1.getPosX()<=x+w && player1.getPosY()>=y - (mapTileSize*3)/4 && player1.getPosY()<=y+h)
+	{
+		jumpGameTexture.loadFromRenderedText("Play jump over the box- price =30 (Press P)",white);
+		jumpGameTexture.render(gWindow.getWidth() / 2 - jumpGameTexture.getWidth() / 2, gWindow.getHeight() - jumpGameTexture.getHeight() * 4);
+	} 
+}
 
 bool loadMedia()
 {
@@ -2205,6 +2231,50 @@ bool loadMedia()
 
 	// Load scene texture
 	// Load music
+
+	//Load sprite sheet texture
+	if( !gManTexture.loadFromFile( "foo.png" ) )
+	{
+		printf( "Failed to load walking animation texture!\n" );
+		success = false;
+	}
+	else
+	{
+		//Set sprite clips
+		gBouncingManClips[ 0 ].x =   0;
+		gBouncingManClips[ 0 ].y =   0;
+		gBouncingManClips[ 0 ].w =  64;
+		gBouncingManClips[ 0 ].h = 205;
+
+		gBouncingManClips[ 1 ].x =  64;
+		gBouncingManClips[ 1 ].y =   0;
+		gBouncingManClips[ 1 ].w =  64;
+		gBouncingManClips[ 1 ].h = 205;
+		
+		gBouncingManClips[ 2 ].x = 128;
+		gBouncingManClips[ 2 ].y =   0;
+		gBouncingManClips[ 2 ].w =  64;
+		gBouncingManClips[ 2 ].h = 205;
+
+		gBouncingManClips[ 3 ].x = 192;
+		gBouncingManClips[ 3 ].y =   0;
+		gBouncingManClips[ 3 ].w =  64;
+		gBouncingManClips[ 3 ].h = 205;
+	}
+	if( !gBoxDinoTexture.loadFromFile( "crate.png" ) )
+	{
+		printf( "Failed to load crate!\n" );
+		success = false;
+	}
+	gBoxDinoTexture.set(50,50);
+	if( !gTreeTexture.loadFromFile( "tree.jpg" ) )
+	{
+		printf( "Failed to load walking animation texture!\n" );
+		success = false;
+	}
+	gTreeTexture.set(1800,900);
+	gManTexture.set(64,205);
+	
 	gMusic = Mix_LoadMUS("beat.wav");
 	if (gMusic == NULL)
 	{
@@ -2538,7 +2608,7 @@ int *datarecv(char *arr, int noofdata)
 int main(int argc, char *args[])
 {
 	int mainchk = 0;
-
+	int verticalloc = 680;
 	// Start up SDL and create window
 	if (!init())
 	{
@@ -2594,6 +2664,56 @@ int main(int argc, char *args[])
 			bool onYulu2 = false;
 			professor1.changePos(5940, 1020);
 			dog1.changePos(2100, 2190);
+
+			SDL_Rect ground;
+				ground.x = 0;
+				ground.y = 300+205;
+				ground.h = SCREEN_HEIGHT-300;
+				ground.w = SCREEN_WIDTH;
+			
+			
+			//Main loop flag
+			bool pause = false;
+
+			//Current animation frame
+			int dinoFrame = 0;
+			start : 
+			double backg1loc = 0,backg2loc = 1800;
+			deque<SDL_Rect> obstacles;
+			deque<double> backGloc;
+			double L = 0;
+			for(int i = 0;i<3;++i ){
+				backGloc.push_back(L);
+				L += 1800;
+			}
+			SDL_Rect temp;
+			double j = 500.0;
+			int jumps = 1;
+			double speed = 3.0;
+
+			for(int i = 0;i<5;++i ){
+				j += (600+rand()%800);
+				temp.x = j;
+				temp.y = verticalloc+205-50;
+				temp.h = 50;
+				temp.w = 50;
+				obstacles.push_back(temp);
+
+			}
+			double startVel=10;
+			double vert =  0.0,vert_velocity = 0.0,g = 0.8;	
+			//While application is running
+			SDL_Rect* backG1 = new SDL_Rect;
+			SDL_Rect* Box = new SDL_Rect;
+			
+			backG1->x = 0;
+			backG1->y = 0;
+			backG1->w = 1800;
+			backG1->h = 900;
+			Box->x = 0;
+			Box->y = 0;
+			Box->w = 250;
+			Box->h = 250;
 
 			while (!quit)
 			{
@@ -2703,7 +2823,8 @@ int main(int argc, char *args[])
 
 							// Update screen
 							SDL_RenderPresent(gRenderer);
-						}
+						} 
+
 					}
 				}
 			}
@@ -2836,6 +2957,12 @@ int main(int argc, char *args[])
 							buyDrink(e);
 							buyFood(e);
 						}
+						if (isPlayerInside(2850,2940,mapTileSize,mapTileSize))
+						{
+							cout<<"why"<<endl;
+							playGame(e);
+	
+						}
 						if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RSHIFT)
 						{
 							if (((curposX >= 1110 && curposX <= 1200) && (curposY >= 390 && curposY <= 660)) || ((curposX >= 540 && curposX <= 840) && (curposY >= 930 && curposY <= 1020)) || ((curposX >= 3690 && curposX <= 3900) && (curposY >= 2280 && curposY <= 2400)) || ((curposX >= 6450 && curposX <= 6540) && (curposY >= 30 && curposY <= 480)) || ((curposX >= 6690 && curposX <= 6780) && (curposY >= 1560 && curposY <= 1680)) || ((curposX >= 1890 && curposX <= 2040) && (curposY >= 2880 && curposY <= 3060)))
@@ -2860,7 +2987,7 @@ int main(int argc, char *args[])
 								yulu1.dir = -1;
 							}
 						}
-						else
+			
 
 							if (!onYulu1)
 						{
@@ -2898,10 +3025,36 @@ int main(int argc, char *args[])
 						playButton2.handle_events(e, 1, 2, 2);
 						playButton1.handle_events(e, 1, 2, 2);
 					}
+						else if(play==3)
+						{
+							//User requests quit
+							if( e.type == SDL_KEYDOWN )
+							{
 
+								//Select surfaces based on key press
+								switch( e.key.keysym.sym )
+								{
+									case SDLK_SPACE:
+									
+									if(vert == 0){
+										vert_velocity= startVel;
+										jumps++;
+										j += (600+rand()%800);
+										temp.x = j;
+										temp.y = verticalloc+205-50;
+										temp.h = 50;
+										temp.w = 50;
+										obstacles.push_back(temp);
+									}
+									break;
+								}
+							}
+
+						}
 					if (e.type == SDL_QUIT)
 					{
 						quit = true;
+						break;
 					}
 					// //for handing keys for temp
 					// if( e.type == SDL_KEYDOWN &&e.key.keysym.sym == SDLK_RCTRL){
@@ -3092,7 +3245,7 @@ int main(int argc, char *args[])
 
 						bg = {camera.x / 4, camera.y / 4, camera.w / 4, camera.h / 4};
 						quitButton.set(gWindow.getWidth() - gWindow.getWidth() / 10, 0, gWindow.getWidth() / 10, gWindow.getHeight() / 10);
-						gBackgroundPlayTexture.loadFromFile("../assets/mapLow.jpg");
+						gBackgroundPlayTexture.loadFromFile("../assets/mapFinal.jpg");
 						gBackgroundPlayTexture.set(gWindow.getWidth(), gWindow.getHeight());
 						gBackgroundPlayTexture.render(0, 0, &bg);
 
@@ -3192,6 +3345,7 @@ int main(int argc, char *args[])
 						drawTexture(dog1.getPosX() - mapTileSize - camera.x, dog1.getPosY() - mapTileSize - camera.y, mapTileSize * 3, mapTileSize * 3, 255, 255, 255, 50);
 						displayDrink(1500,1270,mapTileSize,mapTileSize*4);
 						displayFood(1500,1270,mapTileSize,mapTileSize*4);
+						displayGame(2850,2940,mapTileSize,mapTileSize);
 						// SDL_Color white = {255, 255, 255, 255};
 						package.pickup(dropArea[pickupDestiny]);
 						package.drop();
@@ -3296,9 +3450,196 @@ int main(int argc, char *args[])
 						// Update screen
 						SDL_RenderPresent(gRenderer);
 					}
-					// cout<<play<<endl;
-					Uint32 time = frameTime.getTicks();
+					else if(play == 3)
+					{
+						if (mainchk == 9)
+						{
+							int *list = new int[7];
+							list[0] = player1.getPosX();
+							list[1] = player1.getPosY();
+							list[2] = player1.frame;
+							list[3] = onYulu1;
+							list[4] = yulu1.getPosX();
+							list[5] = yulu1.getPosY();
+							list[6] = yulu1.frame;
+							//  list[3] =
 
+							helloserv = datasend(list, 7);
+
+							if (send(new_socketserv, helloserv, strlen(helloserv), 0) >= 0)
+							{
+							}
+							valreadserv = read(new_socketserv, bufferserv, 60);
+
+							int *recvlist1 = new int[7];
+							recvlist1 = datarecv(bufferserv, 7);
+						
+
+							player2.changePos(recvlist1[0], recvlist1[1]);
+
+							player2.frame = recvlist1[2];
+							onYulu2 = recvlist1[3];
+							yulu2.changePos(recvlist1[4], recvlist1[5]);
+							yulu2.frame = recvlist1[6];
+							// 		for (int i = 0; i < 60; i++)
+							// {
+							// 	/* code */
+							// 	bufferserv[i] = 0;
+							// }
+						}
+						if (mainchk == 10)
+						{
+							int *list = new int[7];
+							list[0] = player1.getPosX();
+							list[1] = player1.getPosY();
+							list[2] = player1.frame;
+							list[3] = onYulu1;
+							list[4] = yulu1.getPosX();
+							list[5] = yulu1.getPosY();
+							list[6] = yulu1.frame;
+
+							hellocl = datasend(list, 7);
+
+							send(sockcl, hellocl, strlen(hellocl), 0);
+
+							valreadcl = read(sockcl, buffercl, 60);
+
+							int *recvlist2 = new int[7];
+							recvlist2 = datarecv(buffercl, 7);
+							char arrt[60] = {};
+							
+							
+
+							player2.changePos(recvlist2[0], recvlist2[1]);
+							cout << recvlist2[2];
+
+							player2.frame = recvlist2[2];
+							onYulu2 = recvlist2[3];
+							yulu2.changePos(recvlist2[4], recvlist2[5]);
+							yulu2.frame = recvlist2[6];
+							// for (int i = 0; i < 60; i++)
+							// {
+							// 	/* code */
+							// 	buffercl[i] = 0;
+							// }
+
+						}
+					gTreeTexture.set(1800,1080);
+					//Clear screen
+					SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+					SDL_RenderClear( gRenderer );
+
+					//Render current dinoFrame
+					
+					vert = vert + vert_velocity;
+					vert_velocity  = vert_velocity-g ;
+					
+					if(vert<=0){
+						
+						vert = 0;
+						vert_velocity = 0;
+						if(!(jumps%5)){
+							speed+=0.5;
+							jumps++;
+							g+=0.2;
+							startVel+=1;
+						}
+						
+					}
+
+					bool flag = 0;    
+					bool backflag = 0;
+					for(auto &it : backGloc){
+						it -= 8*speed;
+						gTreeTexture.render(  it,0 );
+						
+						if(it<=-1800)
+							backflag = 1;
+					}
+					SDL_Rect* currentClipMan = &gBouncingManClips[3- dinoFrame / 4 ];
+					gManTexture.render(  10, verticalloc-vert, currentClipMan );
+					for(auto &it : obstacles){
+						
+						it.x -= 8*speed;
+						gBoxDinoTexture.render(  it.x,it.y, Box );
+						if((it.x<=10+64 && it.x+50>=10+64 && it.y<=verticalloc+205-vert)||(it.x+50>=10 && it.x<=10 && it.y<=verticalloc+205-vert))
+							pause = true;
+						
+						if(it.x<=-50)
+							flag = 1;
+					}
+					
+					
+					j-=8.0*speed;
+					
+					
+					if(backg1loc<=-1800){
+						backg1loc = 0;
+						
+					}
+					if(backflag){
+						backGloc.pop_front();
+						backGloc.push_back(backGloc[1]+1800);
+					}
+					
+					if(flag){
+						dinoCoinGain+=4;
+						obstacles.pop_front();
+
+					}
+					gCoinTexture.set(60,60);
+					gCoinTexture.render(100, 80);
+					string s = to_string(dinoCoinGain);
+					gMoneyTextTexture.loadFromRenderedText(s, gold);
+					float textHeight = 60;
+					float textWidth = textHeight * (gMoneyTextTexture.getWidth() / (1.0 * gMoneyTextTexture.getHeight()));
+					gMoneyTextTexture.set(textWidth, textHeight);
+					gMoneyTextTexture.set(textWidth,textHeight);
+					gMoneyTextTexture.render(200,80);
+					//Update screen
+					SDL_RenderPresent( gRenderer );
+
+					
+					//Go to next dinoFrame
+					++dinoFrame;
+
+					//Cycle animation
+					if( dinoFrame / 4 >= BOUNCING_FRAMES )
+					{
+						dinoFrame = 0;
+					}
+
+				}
+				if(pause){
+					play =1;
+					pause =0;
+					playerScore.changeMoney(dinoCoinGain);
+					dinoCoinGain=0;
+					L = 0;
+					obstacles.clear();
+					backGloc.clear();
+					for(int i = 0;i<3;++i ){
+						backGloc.push_back(L);
+						L += 1800;
+					}
+					
+					j = 500.0;
+					 jumps = 1;
+					// speed = 3.0;
+					for(int i = 0;i<5;++i ){
+						j += (600+rand()%800);
+						temp.x = j;
+						temp.y = verticalloc+205-50;
+						temp.h = 50;
+						temp.w = 50;
+						obstacles.push_back(temp);
+
+					}
+					vert =  0.0,vert_velocity = 0.0;	
+				}
+					}
+					// cout<<play<<endl;
+					int time = frameTime.getTicks();
 					if (time <= 33)
 					{
 						SDL_Delay(33 - time);
@@ -3308,7 +3649,7 @@ int main(int argc, char *args[])
 				}
 			}
 		}
-	}
+	
 
 	// Free resources and close SDL
 	close();
