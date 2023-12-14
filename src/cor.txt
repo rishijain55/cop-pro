@@ -1,2 +1,0 @@
-displayFood(3180,1590,240,180)&&displayFood(3360,1770,240,240)&&displayFood(3180,1980,180,60)&&displayFood(5760,1140,120,180)
-

@@ -2835,7 +2835,7 @@ bool loadMedia()
 	// Load music
 
 	//Load sprite sheet texture
-  	if( !gCarSheetTexture.loadFromFile( "racecar.png" ) || !backGText.loadFromFile("road_texture(1).png") || !carText.loadFromFile("car.png"))
+  	if( !gCarSheetTexture.loadFromFile( "../assets/racecar.png" ) || !backGText.loadFromFile("../assets/road_texture(1).png") || !carText.loadFromFile("../assets/car.png"))
 	{
 		printf( "Failed to load walking animation texture!\n" );
 		success = false;
@@ -2849,7 +2849,7 @@ bool loadMedia()
 		gCarClips[ 0 ].h = 150;
 
 	}
-	if( !gManTexture.loadFromFile( "foo.png" ) )
+	if( !gManTexture.loadFromFile( "../assets/foo.png" ) )
 	{
 		printf( "Failed to load walking animation texture!\n" );
 		success = false;
@@ -2877,13 +2877,13 @@ bool loadMedia()
 		gBouncingManClips[ 3 ].w =  64;
 		gBouncingManClips[ 3 ].h = 205;
 	}
-	if( !gBoxDinoTexture.loadFromFile( "crate.png" ) )
+	if( !gBoxDinoTexture.loadFromFile( "../assets/crate.png" ) )
 	{
 		printf( "Failed to load crate!\n" );
 		success = false;
 	}
 	gBoxDinoTexture.set(50,50);
-	if( !gTreeTexture.loadFromFile( "tree.jpg" ) )
+	if( !gTreeTexture.loadFromFile( "../assets/tree.jpg" ) )
 	{
 		printf( "Failed to load walking animation texture!\n" );
 		success = false;
@@ -2896,7 +2896,7 @@ bool loadMedia()
 	gTreeTexture.set(1800,900);
 	gManTexture.set(64,205);
 	
-	gMusic = Mix_LoadMUS("beat.wav");
+	gMusic = Mix_LoadMUS("../assets/beat.wav");
 	if (gMusic == NULL)
 	{
 		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
@@ -2904,14 +2904,14 @@ bool loadMedia()
 	}
 
 	// Load sound effects
-	grun = Mix_LoadWAV("scratch.wav");
+	grun = Mix_LoadWAV("../assets/scratch.wav");
 	if (grun == NULL)
 	{
 		printf("Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError());
 		success = false;
 	}
 
-	gyulu = Mix_LoadWAV("high.wav");
+	gyulu = Mix_LoadWAV("../assets/high.wav");
 	if (gyulu == NULL)
 	{
 		printf("Failed to load high sound effect! SDL_mixer Error: %s\n", Mix_GetError());
@@ -2924,7 +2924,7 @@ bool loadMedia()
 		
 		success = false;
 	}
-	if (!gBackgroundEndScreenTexture.loadFromFile("endgamebg.png"))
+	if (!gBackgroundEndScreenTexture.loadFromFile("../assets/endgamebg.png"))
 	{
 		printf("Failed to load background texture!\n");
 		
